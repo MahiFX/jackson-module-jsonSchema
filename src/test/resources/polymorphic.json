@@ -1,0 +1,16 @@
+[
+  {
+    "@type": "Person",
+    "name": "Zoltan",
+    "dateOfBirth": "28091982"
+  },
+  {
+    "@type": "Company",
+    "name": "MahiFx"
+  },
+  {
+    "@type": "BigCompany",
+    "name": "Zoltan co",
+    "directorName": "Zoltan"
+  }
+]
