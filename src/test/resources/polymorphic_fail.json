@@ -1,0 +1,10 @@
+[
+  {
+    "@Type": "Person",
+    "dateOfBirth": "28091982"
+  },
+  {
+    "@Type": "Company",
+    "name": "MahiFx"
+  }
+]
