@@ -1,18 +1,15 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
-import com.fasterxml.jackson.module.jsonSchemaV4.types.AnySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 public class JsonSchemaFactory {
-    public AnySchema anySchema() {
-        return new AnySchema();
-    }
 
     public ArraySchema arraySchema() {
         return new ArraySchema();
@@ -41,4 +38,9 @@ public class JsonSchemaFactory {
     public StringSchema stringSchema() {
         return new StringSchema();
     }
+
+    public PolymorphicObjectSchema polymorphicObjectSchema() {
+        return new PolymorphicObjectSchema();
+    }
+
 }

@@ -11,6 +11,8 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
 public class AnyOfSchema extends JsonSchema {
 
+    public AnyOfSchema() {
+    }
     public AnyOfSchema(ReferenceSchema[] anyOf) {
         this.anyOf = anyOf;
     }

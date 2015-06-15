@@ -1,6 +1,8 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,29 +18,50 @@ public class PolymorphicTypeTest {
 
 
     @Test
-    public void polymorphicSchemaGeneration() {
+    public void polymorphicSchemaGenerationArray() {
         Type type = JSONSubTypeBaseClass[].class;
         JsonSchema schema = schema(type);
         String json = toJson(schema, schema.getClass());
         System.out.println(json);
-        Assert.assertNotNull("definitionts should have been added", schema.getDefinitions());
-        Assert.assertEquals("there should be 3 sub schena", 3, schema.getDefinitions().entrySet().size());
+        Assert.assertNotNull("definitions should have been added", schema.getDefinitions());
+        Assert.assertEquals("there should be 3 sub schema", 3, schema.getDefinitions().entrySet().size());
         Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
         Assert.assertTrue("Found no Person schema", schema.getDefinitions().containsKey("Person"));
         Assert.assertTrue("Found no BigCompany schema", schema.getDefinitions().containsKey("BigCompany"));
         Assert.assertTrue("Array items should be a one of schema", schema.asArraySchema().getItems().asSingleItems().getSchema() instanceof AnyOfSchema);
-        Assert.assertTrue("One OF Schema Should Contain Company Reference", containsReference((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema(), "Person"));
-        Assert.assertTrue("One OF Schema Should Contain Person Reference", containsReference((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema(), "Company"));
-        Assert.assertTrue("One OF Schema Should Contain Person Reference", containsReference((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema(), "BigCompany"));
+        Assert.assertTrue("Any OF Schema Should Contain Company Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), "Person"));
+        Assert.assertTrue("Any OF Schema Should Contain Person Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), "Company"));
+        Assert.assertTrue("Any OF Schema Should Contain Person Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), "BigCompany"));
 
     }
 
-    private boolean containsReference(AnyOfSchema schema, String name) {
-        if (schema.getAnyOf() == null) {
+    @Test
+    public void polymorphicSchemaGenerationObject() {
+        Type type = JSONSubTypeBaseClass.class;
+        JsonSchema schema = schema(type);
+        String json = toJson(schema, schema.getClass());
+        System.out.println(json);
+        Assert.assertNotNull("definitions should have been added", schema.getDefinitions());
+        Assert.assertEquals("there should be 3 sub schema", 3, schema.getDefinitions().entrySet().size());
+        Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
+        Assert.assertTrue("Found no Person schema", schema.getDefinitions().containsKey("Person"));
+        Assert.assertTrue("Found no BigCompany schema", schema.getDefinitions().containsKey("BigCompany"));
+        Assert.assertTrue("Expected polymorphicObject", schema instanceof PolymorphicObjectSchema);
+        Assert.assertTrue("PolymoprhicSchema should contain Person Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "Person"));
+        Assert.assertTrue("PolymoprhicSchema should contain Company Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "Company"));
+        Assert.assertTrue("PolymoprhicSchema should contain BigCompany Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "BigCompany"));
+
+    }
+
+    private boolean containsReference(ReferenceSchema[] refSchemas, String name) {
+        if (refSchemas == null) {
             return false;
         }
-        for (com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema refSchema : schema.getAnyOf()) {
+        for (com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema refSchema : refSchemas) {
             if (("#/definitions/" + name).equals(refSchema.get$ref())) {
+                return true;
+            }
+            if (refSchema.get$ref().contains(name)) {
                 return true;
             }
         }

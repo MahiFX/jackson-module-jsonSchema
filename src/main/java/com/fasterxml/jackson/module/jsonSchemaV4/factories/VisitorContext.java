@@ -20,6 +20,6 @@ public class VisitorContext {
     }
 
     public String javaTypeToUrn(JavaType jt) {
-        return "urn:jsonschema:" + jt.toCanonical().replace('.', ':').replace('$', ':');
+        return "urn:jsonschema:" + jt.toCanonical().replace('.', ':').replace('$', ':').replace("<", ":").replace(">", ":");
     }
 }

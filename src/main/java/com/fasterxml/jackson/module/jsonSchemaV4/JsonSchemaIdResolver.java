@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.AnySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
@@ -63,7 +62,7 @@ public class JsonSchemaIdResolver extends TypeIdResolverBase {
                     return ctxt.constructType(StringSchema.class);
                 case ANY:
                 default:
-                    return ctxt.constructType(AnySchema.class);
+                    return ctxt.constructType(ObjectSchema.class);
             }
         }
         // Not a standard type; should use a custom sub-type impl
