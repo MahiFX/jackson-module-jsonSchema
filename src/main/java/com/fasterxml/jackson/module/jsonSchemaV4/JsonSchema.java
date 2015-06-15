@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.AnySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ContainerTypeSchema;
@@ -145,15 +144,6 @@ public abstract class JsonSchema {
     private Map<String, JsonSchema> definitions;
 
     /**
-     * Attempt to return this JsonSchema as an {@link AnySchema}
-     *
-     * @return this as an AnySchema if possible, or null otherwise
-     */
-    public AnySchema asAnySchema() {
-        return null;
-    }
-
-    /**
      * Attempt to return this JsonSchema as an {@link ArraySchema}
      *
      * @return this as an ArraySchema if possible, or null otherwise
@@ -284,15 +274,6 @@ public abstract class JsonSchema {
     @JsonIgnore
     public abstract JsonFormatTypes getType();
 
-    /**
-     * determine if this JsonSchema is an {@link AnySchema}.
-     *
-     * @return true if this JsonSchema is an AnySchema, false otherwise
-     */
-    @JsonIgnore
-    public boolean isAnySchema() {
-        return false;
-    }
 
     /**
      * determine if this JsonSchema is an {@link ArraySchema}.
@@ -463,7 +444,7 @@ public abstract class JsonSchema {
                 default:
             }
         }
-        return new AnySchema();
+        return new ObjectSchema();
     }
 
     @Override

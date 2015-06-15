@@ -9,8 +9,13 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
+
+import java.util.HashMap;
+
+import static com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorUtils.isPolymorphic;
 
 public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         implements JsonSchemaProducer, Visitor {
@@ -131,10 +136,18 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
                 return new ReferenceSchema(seenSchemaUri);
             }
         }
-
-        SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(getProvider(), visitorContext);
-        handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
-        return visitor.finalSchema();
+        if (isPolymorphic(propertyTypeHint.getRawClass())) {
+            VisitorUtils.PolymorphiSchemaDefinition polymorphiSchemaDefinition = new VisitorUtils(visitorContext).extractPolymophicTypes(propertyTypeHint.getRawClass());
+            if (schema.getDefinitions() == null) {
+                schema.setDefinitions(new HashMap<String, JsonSchema>());
+            }
+            schema.getDefinitions().putAll(polymorphiSchemaDefinition.getDefinitions());
+            return new AnyOfSchema(polymorphiSchemaDefinition.getReferences());
+        } else {
+            SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(getProvider(), visitorContext);
+            handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
+            return visitor.finalSchema();
+        }
     }
 
     protected JsonSerializer<Object> getSer(BeanProperty prop)
@@ -155,4 +168,5 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         visitorContext = rvc;
         return this;
     }
+
 }

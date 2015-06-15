@@ -1,17 +1,21 @@
 package com.fasterxml.jackson.module.jsonSchema.failing;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import java.util.*;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.SchemaTestBase;
 import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
+import org.junit.Ignore;
+
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Trivial test to ensure that Schema instances can be also deserialized
  */
+@Ignore
 public class TestReadJsonSchema
     extends SchemaTestBase
 {

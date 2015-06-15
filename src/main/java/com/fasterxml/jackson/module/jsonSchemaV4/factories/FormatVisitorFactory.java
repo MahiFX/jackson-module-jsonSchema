@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
@@ -10,13 +11,13 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNullFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.AnySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 /**
@@ -41,8 +42,8 @@ public class FormatVisitorFactory {
     /**********************************************************
      */
 
-    public JsonAnyFormatVisitor anyFormatVisitor(AnySchema anySchema) {
-        return null;
+    public JsonAnyFormatVisitor anyFormatVisitor(ObjectSchema anySchema) {
+        return new AnyVisitor(anySchema);
     }
 
     public JsonArrayFormatVisitor arrayFormatVisitor(SerializerProvider provider,
@@ -107,5 +108,9 @@ public class FormatVisitorFactory {
 
     public JsonStringFormatVisitor stringFormatVisitor(StringSchema stringSchema) {
         return new StringVisitor(stringSchema);
+    }
+
+    public PolymorphicObjectVisitor polymorphicObjectVisitor(VisitorContext visitorContext, PolymorphicObjectSchema s, JavaType type) {
+        return new PolymorphicObjectVisitor(visitorContext, s, type);
     }
 }

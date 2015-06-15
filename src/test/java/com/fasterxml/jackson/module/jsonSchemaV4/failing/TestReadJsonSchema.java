@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaTestBase;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
+import org.junit.Ignore;
 
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -14,6 +15,7 @@ import java.util.List;
 /**
  * Trivial test to ensure that Schema instances can be also deserialized
  */
+@Ignore
 public class TestReadJsonSchema
         extends SchemaTestBase {
     enum SchemaEnum {
@@ -27,7 +29,6 @@ public class TestReadJsonSchema
     static class SchemableEnumSet {
         public EnumSet<SchemaEnum> testEnums;
     }
-
     static class SchemableEnumMap {
         public EnumMap<SchemaEnum, List<String>> whatever;
     }

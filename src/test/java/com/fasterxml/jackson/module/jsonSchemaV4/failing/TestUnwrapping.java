@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchemaGenerator;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaTestBase;
+import org.junit.Ignore;
 
+@Ignore
 public class TestUnwrapping extends SchemaTestBase {
     static class UnwrappingRoot {
         public int age;

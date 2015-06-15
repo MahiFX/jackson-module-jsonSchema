@@ -1,0 +1,137 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:com:x:configuration:clientsession:ClientProfile",
+  "properties": {
+    "riskParty": {
+      "type": "object",
+      "definitions": {
+        "Book": {
+          "type": "object",
+          "id": "urn:jsonschema:com:x:marketmodel:Book",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "parent": {
+              "type": "object",
+              "id": "urn:jsonschema:com:x:marketmodel:Party",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "parent": {
+                  "type": "object",
+                  "$ref": "urn:jsonschema:com:x:marketmodel:Party"
+                }
+              }
+            },
+            "displayName": {
+              "type": "string"
+            }
+          }
+        },
+        "DefaultParty": {
+          "type": "object",
+          "id": "urn:jsonschema:com:x:marketmodel:DefaultParty",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "parent": {
+              "type": "object",
+              "id": "urn:jsonschema:com:x:marketmodel:Party",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "parent": {
+                  "type": "object",
+                  "$ref": "urn:jsonschema:com:x:marketmodel:Party"
+                }
+              }
+            }
+          }
+        }
+      },
+      "anyOf": [
+        {
+          "$ref": "#/definitions/DefaultParty"
+        },
+        {
+          "$ref": "#/definitions/Book"
+        }
+      ]
+    },
+    "id": {
+      "type": "object",
+      "id": "urn:jsonschema:com:x:configuration:clientsession:ClientProfileId",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "pricingPipeline": {
+      "type": "object",
+      "id": "urn:jsonschema:com:x:configuration:pricing:client:ClientPricingPipeline",
+      "properties": {
+        "liquidityRefreshProfile": {
+          "type": "object",
+          "id": "urn:jsonschema:com:x:configuration:pricing:client:LiquidityRefreshProfileId",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        },
+        "lastLookProfile": {
+          "type": "object",
+          "id": "urn:jsonschema:com:x:configuration:pricing:client:LastLookProfileId",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        },
+        "traderProfile": {
+          "type": "object",
+          "id": "urn:jsonschema:com:x:marketmodel:pricing:client:ClientMarkupProfileId",
+          "properties": {
+            "id": {
+              "type": "string"
+            }
+          }
+        },
+        "marketSubtype": {
+          "type": "string"
+        },
+        "salesProfile": {
+          "type": "object",
+          "$ref": "urn:jsonschema:com:x:marketmodel:pricing:client:ClientMarkupProfileId"
+        }
+      }
+    },
+    "marketDataSession": {
+      "type": "any"
+    },
+    "name": {
+      "type": "string"
+    },
+    "orderSession": {
+      "type": "any"
+    },
+    "channel": {
+      "type": "string"
+    },
+    "version": {
+      "type": "object",
+      "id": "urn:jsonschema:com:x:marketmodel:core:VersionLock",
+      "properties": {
+        "version": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
+
