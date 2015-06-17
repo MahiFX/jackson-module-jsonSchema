@@ -36,12 +36,12 @@ public class TestJsonValue extends SchemaTestBase {
     public void testJsonValueAnnotation() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
+        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(mapper);
         mapper.acceptJsonFormatVisitor(mapper.constructType(Leaf.class), visitor);
         JsonSchema schemaExp = visitor.finalSchema();
         assertNotNull(schemaExp);
 
-        visitor = new SchemaFactoryWrapper();
+        visitor = new SchemaFactoryWrapper(mapper);
         mapper.acceptJsonFormatVisitor(mapper.constructType(ContainerWithAsValue.class), visitor);
         JsonSchema schemaAct = visitor.finalSchema();
         assertNotNull(schemaAct);
@@ -65,7 +65,7 @@ public class TestJsonValue extends SchemaTestBase {
     public void testJsonValueForCollection() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
+        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(mapper);
         mapper.acceptJsonFormatVisitor(mapper.constructType(Issue34Bean.class), visitor);
         JsonSchema schema = visitor.finalSchema();
         assertNotNull(schema);

@@ -1,17 +1,23 @@
 package com.fasterxml.jackson.module.jsonSchema;
 
-import java.util.Arrays;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-
 import com.fasterxml.jackson.databind.DatabindContext;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
-import com.fasterxml.jackson.module.jsonSchema.types.*;
+import com.fasterxml.jackson.module.jsonSchema.types.AnySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchema.types.BooleanSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.IntegerSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.NullSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.NumberSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchema.types.StringSchema;
+
+import java.util.Arrays;
 
 /**
- * Type id resolver needed to support polymorphic (de)serialization of all kinds of
+ * Type id resolver needed to support visitPolymorphicObject (de)serialization of all kinds of
  * {@link JsonSchema} instances.
  * Note that to support custom types, you will need to sub-class this resolver
  * and override at least {@link #idFromValue(Object)}, {@link #idFromValueAndType(Object, Class)} and

@@ -53,13 +53,13 @@ public class JsonSchemaGenerator {
     }
 
     public JsonSchema generateSchema(Class<?> type) throws JsonMappingException {
-        SchemaFactoryWrapper visitor = _wrapperFactory.getWrapper(null);
+        SchemaFactoryWrapper visitor = _wrapperFactory.getWrapper(_mapper, null);
         _writer.acceptJsonFormatVisitor(type, visitor);
         return visitor.finalSchema();
     }
 
     public JsonSchema generateSchema(JavaType type) throws JsonMappingException {
-        SchemaFactoryWrapper visitor = _wrapperFactory.getWrapper(null);
+        SchemaFactoryWrapper visitor = _wrapperFactory.getWrapper(_mapper, null);
         _writer.acceptJsonFormatVisitor(type, visitor);
         return visitor.finalSchema();
     }

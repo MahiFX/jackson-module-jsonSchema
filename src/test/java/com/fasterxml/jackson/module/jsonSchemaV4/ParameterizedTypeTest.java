@@ -2,13 +2,22 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jackson.JsonLoader;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Created by zoliszel on 15/06/2015.
  */
 public class ParameterizedTypeTest {
+
+    private ObjectMapper mapper;
+
+    @Before
+    public void setup() {
+        mapper = new ObjectMapper();
+    }
 
     @JsonTypeName("Parameterized")
     public static class Parameterized<T> {
@@ -39,7 +48,7 @@ public class ParameterizedTypeTest {
 
     @Test
     public void testSchemaCreationAndValidation() throws Exception {
-        com.github.fge.jsonschema.main.JsonSchema validatorSchema = Utils.createValidatorSchemaForClass(Parameterized.class);
+        com.github.fge.jsonschema.main.JsonSchema validatorSchema = Utils.createValidatorSchemaForClass(Parameterized.class, mapper);
         validatorSchema.validate(JsonLoader.fromString("{}"), true);
     }
 }

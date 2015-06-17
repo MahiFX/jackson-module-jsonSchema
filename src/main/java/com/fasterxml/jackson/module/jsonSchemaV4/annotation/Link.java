@@ -77,7 +77,7 @@ public @interface Link {
      * describedby  This indicates the target of the link is the jsonSchema for
      * the instance object.  This MAY be used to specifically denote the
      * schemas of objects within a JSON object hierarchy, facilitating
-     * polymorphic type data structures.
+     * visitPolymorphicObject type data structures.
      * <p/>
      * root  This relation indicates that the target of the link SHOULD be
      * treated as the root or the body of the representation for the

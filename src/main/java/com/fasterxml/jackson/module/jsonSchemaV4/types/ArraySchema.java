@@ -162,6 +162,8 @@ public class ArraySchema extends ContainerTypeSchema {
      * allowed, disallowed, or constrained by the "additionalItems"
      */
     public static class ArrayItems extends ArraySchema.Items {
+
+
         @JsonProperty
         private JsonSchema[] jsonSchemas;
 
@@ -186,6 +188,9 @@ public class ArraySchema extends ContainerTypeSchema {
             }
         }
 
+        public void setJsonSchemas(JsonSchema[] jsonSchemas) {
+            this.jsonSchemas = jsonSchemas;
+        }
         public JsonSchema[] getJsonSchemas() {
             return jsonSchemas;
         }

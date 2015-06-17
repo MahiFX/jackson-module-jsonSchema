@@ -265,7 +265,7 @@ public class TestGenerateJsonSchema
     public void testInvalidCall() throws Exception {
         // not ok to pass null
         try {
-            SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
+            SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
             MAPPER.acceptJsonFormatVisitor((JavaType) null, visitor);
             fail("Should have failed");
         } catch (IllegalArgumentException iae) {

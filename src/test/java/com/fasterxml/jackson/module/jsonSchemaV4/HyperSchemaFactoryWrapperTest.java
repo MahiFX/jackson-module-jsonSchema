@@ -25,14 +25,15 @@ public class HyperSchemaFactoryWrapperTest extends SchemaTestBase {
     }
 
     public void testSimpleHyperWithDefaultSchema() throws Exception {
-        HyperSchemaFactoryWrapper personVisitor = new HyperSchemaFactoryWrapper();
-        personVisitor.setIgnoreDefaults(false);
         ObjectMapper mapper = new ObjectMapper();
+        HyperSchemaFactoryWrapper personVisitor = new HyperSchemaFactoryWrapper(mapper);
+        personVisitor.setIgnoreDefaults(false);
+
 
         mapper.acceptJsonFormatVisitor(Person.class, personVisitor);
         JsonSchema personSchema = personVisitor.finalSchema();
 
-        HyperSchemaFactoryWrapper petVisitor = new HyperSchemaFactoryWrapper();
+        HyperSchemaFactoryWrapper petVisitor = new HyperSchemaFactoryWrapper(mapper);
         mapper.acceptJsonFormatVisitor(Pet.class, petVisitor);
         JsonSchema petSchema = petVisitor.finalSchema();
 
@@ -55,13 +56,14 @@ public class HyperSchemaFactoryWrapperTest extends SchemaTestBase {
     }
 
     public void testSimpleHyperWithoutDefaultSchema() throws Exception {
-        HyperSchemaFactoryWrapper personVisitor = new HyperSchemaFactoryWrapper();
         ObjectMapper mapper = new ObjectMapper();
+
+        HyperSchemaFactoryWrapper personVisitor = new HyperSchemaFactoryWrapper(mapper);
 
         mapper.acceptJsonFormatVisitor(Person.class, personVisitor);
         JsonSchema personSchema = personVisitor.finalSchema();
 
-        HyperSchemaFactoryWrapper petVisitor = new HyperSchemaFactoryWrapper();
+        HyperSchemaFactoryWrapper petVisitor = new HyperSchemaFactoryWrapper(mapper);
         mapper.acceptJsonFormatVisitor(Pet.class, petVisitor);
         JsonSchema petSchema = petVisitor.finalSchema();
 

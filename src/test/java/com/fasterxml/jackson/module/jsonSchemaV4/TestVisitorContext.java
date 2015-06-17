@@ -91,7 +91,7 @@ public class TestVisitorContext extends SchemaTestBase {
 
     private String generateSchema(Class<?> clazz) throws Exception {
         MAPPER.configure(SerializationFeature.INDENT_OUTPUT, true);
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
+        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
         MAPPER.acceptJsonFormatVisitor(MAPPER.constructType(clazz), visitor);
         return MAPPER.writeValueAsString(visitor.finalSchema());
     }

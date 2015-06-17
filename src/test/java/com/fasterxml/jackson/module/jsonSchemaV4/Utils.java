@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
-import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSerializer;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.load.Dereferencing;
 import com.github.fge.jsonschema.core.load.configuration.LoadingConfiguration;
@@ -22,11 +19,10 @@ import java.lang.reflect.Type;
  * Created by zoliszel on 11/06/2015.
  */
 public class Utils {
-    public static JsonSchema schema(Type t) {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
+
+    public static JsonSchema schema(Type t, final ObjectMapper mapper) {
         try {
-            SchemaFactoryWrapper visitor = new SchemaFactoryWrapper();
+            SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(mapper);
 
             mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
             return visitor.finalSchema();
@@ -36,25 +32,16 @@ public class Utils {
         }
     }
 
-
-    public static String toJson(Object o, Type type) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static String toJson(Object o, Type type, ObjectMapper mapper) {
         try {
-            return mapper.writerWithType(mapper.constructType(type)).writeValueAsString(o);
+            return mapper.writer().writeValueAsString(o);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public static <T> T loadJson(InputStream stream, Class<T> type) {
-        return loadJson(stream, type, null);
-    }
+    public static <T> T loadJson(InputStream stream, Class<T> type, ObjectMapper mapper) {
 
-    public static <T> T loadJson(InputStream stream, Class<T> type, TypeResolverBuilder<?> typer) {
-        ObjectMapper mapper = new ObjectMapper();
-        if (typer != null) {
-            mapper.setDefaultTyping(typer);
-        }
         JavaType javaType = mapper.constructType(type);
         try {
             return mapper.readValue(stream, javaType);
@@ -66,18 +53,18 @@ public class Utils {
     }
 
 
-    public static com.github.fge.jsonschema.main.JsonSchema createValidatorSchemaForClass(Class<?> clazz) throws Exception {
+    public static com.github.fge.jsonschema.main.JsonSchema createValidatorSchemaForClass(Class<?> clazz, ObjectMapper mapper) throws Exception {
         final LoadingConfiguration cfg = LoadingConfiguration.newBuilder()
                 .dereferencing(Dereferencing.INLINE).freeze();
         final JsonSchemaFactory schemaFactory = JsonSchemaFactory.newBuilder()
                 .setLoadingConfiguration(cfg).freeze();
 
-        return schemaFactory.getJsonSchema(generateSchemaFrom(clazz));
+        return schemaFactory.getJsonSchema(generateSchemaFrom(clazz, mapper));
     }
 
-    public static JsonNode generateSchemaFrom(Class<?> clazz) throws Exception {
-        Object jacksonSchema = Utils.schema(clazz);
-        String schemaInString = Utils.toJson(jacksonSchema, jacksonSchema.getClass());
+    public static JsonNode generateSchemaFrom(Class<?> clazz, ObjectMapper mapper) throws Exception {
+        Object jacksonSchema = schema(clazz, mapper);
+        String schemaInString = Utils.toJson(jacksonSchema, jacksonSchema.getClass(), mapper);
         System.out.println(schemaInString);
         return JsonLoader.fromString(schemaInString);
 

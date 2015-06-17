@@ -1,8 +1,12 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
+import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.createValidatorSchemaForClass;
@@ -12,9 +16,17 @@ import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.createValidatorSch
  */
 public class JSONValidatorIntegrationTest {
 
+    private ObjectMapper mapper;
+
+    @Before
+    public void setup() {
+        mapper = new ObjectMapper();
+        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
+    }
+
     @Test
     public void JSONValidateTestSuccess() throws Exception {
-        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class);
+        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class, mapper);
         ProcessingReport report;
 
         report = schema.validate(JsonLoader.fromResource("/polymorphic.json"), true);
@@ -23,7 +35,7 @@ public class JSONValidatorIntegrationTest {
 
     @Test
     public void JSONValidateTestFail() throws Exception {
-        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class);
+        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class, mapper);
 
         ProcessingReport report;
         report = schema.validate(JsonLoader.fromResource("/polymorphic_fail.json"), true);
@@ -37,10 +49,10 @@ public class JSONValidatorIntegrationTest {
                 new BigCompany("This is a really big company", "John"), new Person("zoltan", "19820928"), new Company("this is a small company")
         };
 
-        String jsonString = Utils.toJson(elements, elements.getClass());
+        String jsonString = Utils.toJson(elements, elements.getClass(), new ObjectMapper());
         System.out.println(jsonString);
 
-        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class);
+        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class, mapper);
         ProcessingReport report;
         report = schema.validate(JsonLoader.fromString(jsonString), true);
         Assert.assertTrue(report.toString(), report.isSuccess());
@@ -52,10 +64,10 @@ public class JSONValidatorIntegrationTest {
                 new BigCompany(), new Person(), new Company()
         };
 
-        String jsonString = Utils.toJson(elements, elements.getClass());
+        String jsonString = Utils.toJson(elements, elements.getClass(), new ObjectMapper());
         System.out.println(jsonString);
 
-        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class);
+        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass[].class, mapper);
         ProcessingReport report;
         report = schema.validate(JsonLoader.fromString(jsonString), true);
         Assert.assertFalse(report.toString(), report.isSuccess());
@@ -68,10 +80,10 @@ public class JSONValidatorIntegrationTest {
                 new BigCompany("This is a really big company", "John"), new Person("zoltan", "19820928"), new Company("this is a small company")
         };
 
-        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass.class);
+        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass.class, mapper);
 
         for (JSONSubTypeBaseClass element : elements) {
-            String jsonString = Utils.toJson(element, element.getClass());
+            String jsonString = Utils.toJson(element, element.getClass(), new ObjectMapper());
             System.out.println(jsonString);
 
             ProcessingReport report;
@@ -86,19 +98,17 @@ public class JSONValidatorIntegrationTest {
                 new BigCompany(), new Person(), new Company()
         };
 
-        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass.class);
+        com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass.class, mapper);
 
         for (JSONSubTypeBaseClass element : elements) {
-            String jsonString = Utils.toJson(element, element.getClass());
+            String jsonString = Utils.toJson(element, element.getClass(), new ObjectMapper());
             System.out.println(jsonString);
-
 
             ProcessingReport report;
             report = schema.validate(JsonLoader.fromString(jsonString), true);
             System.out.println(report.toString());
             Assert.assertFalse(report.toString(), report.isSuccess());
         }
-
     }
 
 
