@@ -2,36 +2,44 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.VisitorUtils;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
-import static com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorUtils.PolymorphiSchemaDefinition;
-import static com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorUtils.isPolymorphic;
+
 
 public class ArrayVisitor extends JsonArrayFormatVisitor.Base
         implements JsonSchemaProducer, Visitor {
-    protected final ArraySchema schema;
+
+    private final JavaType originalType;
+
+    protected ArraySchema schema;
 
     protected SerializerProvider provider;
 
     private WrapperFactory wrapperFactory;
 
     private VisitorContext visitorContext;
+    private ObjectMapper originalMapper;
+
 
     public ArrayVisitor(SerializerProvider provider, ArraySchema schema) {
-        this(provider, schema, new WrapperFactory());
+        this(provider, schema, new WrapperFactory(), null);
     }
 
-    public ArrayVisitor(SerializerProvider provider, ArraySchema schema, WrapperFactory wrapperFactory) {
+    public ArrayVisitor(SerializerProvider provider, ArraySchema schema, WrapperFactory wrapperFactory, JavaType originalType) {
         this.provider = provider;
         this.schema = schema;
         this.wrapperFactory = wrapperFactory;
+        this.originalType = originalType;
     }
 
     /*
@@ -42,7 +50,7 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
 
     @Override
     public JsonSchema getSchema() {
-        return schema;
+        return new VisitorUtils(originalMapper, visitorContext, provider).decorateWithTypeInformation(schema, null);
     }
 
     /*
@@ -73,14 +81,11 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
     public void itemsFormat(JsonFormatVisitable handler, JavaType contentType) throws JsonMappingException {
         // An array of object matches any values, thus we leave the schema empty.
         if (contentType.getRawClass() != Object.class) {
-            if (isPolymorphic(contentType.getRawClass())) {
-                PolymorphiSchemaDefinition polymorphicDefinition = new VisitorUtils(visitorContext).extractPolymophicTypes(contentType.getRawClass());
-
+            PolymorphicHandlingUtil polyMorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, contentType);
+            if (polyMorphicHandlingUtil.isPolymorphic()) {
+                PolymorphicHandlingUtil.PolymorphiSchemaDefinition polymorphicDefinition = polyMorphicHandlingUtil.extractPolymophicTypes();
                 schema.setItemsSchema(new AnyOfSchema(polymorphicDefinition.getReferences()));
-                //schema.setAllOf(new HashSet<Object>(definitions.values()));
                 schema.setDefinitions(polymorphicDefinition.getDefinitions());
-
-
             } else {
                 // check if we've seen this sub-schema already and return a reference-schema if we have
                 if (visitorContext != null) {
@@ -90,14 +95,12 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
                         return;
                     }
                 }
-
-                SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(getProvider(), visitorContext);
+                SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
                 handler.acceptJsonFormatVisitor(visitor, contentType);
                 schema.setItemsSchema(visitor.finalSchema());
             }
         }
     }
-
 
     @Override
     public void itemsFormat(JsonFormatTypes format) throws JsonMappingException {
@@ -111,4 +114,7 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
     }
 
 
+    public void setOriginalMapper(ObjectMapper originalMapper) {
+        this.originalMapper = originalMapper;
+    }
 }

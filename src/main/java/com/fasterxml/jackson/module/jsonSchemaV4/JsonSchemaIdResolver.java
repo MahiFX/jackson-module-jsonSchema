@@ -16,7 +16,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 import java.util.Arrays;
 
 /**
- * Type id resolver needed to support polymorphic (de)serialization of all kinds of
+ * Type id resolver needed to support visitPolymorphicObject (de)serialization of all kinds of
  * {@link JsonSchema} instances.
  * Note that to support custom types, you will need to sub-lcass this resolver
  * and override at least {@link #idFromValue(Object)}, {@link #idFromValueAndType(Object, Class)} and

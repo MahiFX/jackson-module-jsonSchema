@@ -177,6 +177,10 @@ public class ObjectSchema extends ContainerTypeSchema {
         return properties.put(name, value);
     }
 
+    public Set<String> getRequired() {
+        return required;
+    }
+
     public void rejectAdditionalProperties() {
         additionalProperties = NoAdditionalProperties.instance;
     }

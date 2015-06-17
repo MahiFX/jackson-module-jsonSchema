@@ -21,6 +21,7 @@ public abstract class JSONSubTypeBaseClass {
 }
 
 @JsonTypeName(Person.TYPE_NAME)
+@JsonSubTypes({})
 class Person extends JSONSubTypeBaseClass {
 
     public static final String TYPE_NAME = "Person";

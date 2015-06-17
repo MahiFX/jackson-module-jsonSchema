@@ -2,6 +2,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
@@ -23,6 +24,7 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
     private WrapperFactory wrapperFactory;
 
     private VisitorContext visitorContext;
+    private ObjectMapper originalMapper;
 
     public MapVisitor(SerializerProvider provider, ObjectSchema schema) {
         this(provider, schema, new WrapperFactory());
@@ -89,7 +91,7 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
             }
         }
 
-        SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(getProvider(), visitorContext);
+        SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
         handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
         return visitor.finalSchema();
     }
@@ -98,5 +100,9 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
     public Visitor setVisitorContext(VisitorContext rvc) {
         visitorContext = rvc;
         return this;
+    }
+
+    public void setOriginalMapper(ObjectMapper originalMapper) {
+        this.originalMapper = originalMapper;
     }
 }

@@ -1,9 +1,13 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
+import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Type;
@@ -15,13 +19,20 @@ import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.*;
  */
 
 public class PolymorphicTypeTest {
+    private ObjectMapper mapper;
+
+    @Before
+    public void setup() {
+        mapper = new ObjectMapper();
+        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
+    }
 
 
     @Test
     public void polymorphicSchemaGenerationArray() {
         Type type = JSONSubTypeBaseClass[].class;
-        JsonSchema schema = schema(type);
-        String json = toJson(schema, schema.getClass());
+        JsonSchema schema = schema(type, mapper);
+        String json = toJson(schema, schema.getClass(), mapper);
         System.out.println(json);
         Assert.assertNotNull("definitions should have been added", schema.getDefinitions());
         Assert.assertEquals("there should be 3 sub schema", 3, schema.getDefinitions().entrySet().size());
@@ -38,8 +49,8 @@ public class PolymorphicTypeTest {
     @Test
     public void polymorphicSchemaGenerationObject() {
         Type type = JSONSubTypeBaseClass.class;
-        JsonSchema schema = schema(type);
-        String json = toJson(schema, schema.getClass());
+        JsonSchema schema = schema(type, mapper);
+        String json = toJson(schema, schema.getClass(), mapper);
         System.out.println(json);
         Assert.assertNotNull("definitions should have been added", schema.getDefinitions());
         Assert.assertEquals("there should be 3 sub schema", 3, schema.getDefinitions().entrySet().size());
@@ -70,7 +81,7 @@ public class PolymorphicTypeTest {
 
     @Test
     public void parseTest() {
-        JSONSubTypeBaseClass[] media = loadJson(PolymorphicTypeTest.class.getResourceAsStream("/polymorphic.json"), JSONSubTypeBaseClass[].class);
+        JSONSubTypeBaseClass[] media = loadJson(PolymorphicTypeTest.class.getResourceAsStream("/polymorphic.json"), JSONSubTypeBaseClass[].class, mapper);
         Assert.assertEquals("mismatch in array size", 3, media.length);
         Assert.assertTrue("First item is not a person", media[0] instanceof Person);
         Assert.assertTrue("Second item is not a Company", media[1] instanceof Company);

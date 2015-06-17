@@ -2,6 +2,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
@@ -13,6 +14,7 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.VisitorUtils;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
@@ -31,25 +33,30 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     protected JsonSchemaFactory schemaProvider;
     protected SerializerProvider provider;
     protected JsonSchema schema;
+    protected JavaType originalType;
     protected VisitorContext visitorContext;
 
-    public SchemaFactoryWrapper() {
-        this(null, new WrapperFactory());
+    protected ObjectMapper originalMapper;
+
+    public SchemaFactoryWrapper(ObjectMapper originalMapper) {
+        this(originalMapper, null, new WrapperFactory());
     }
 
-    public SchemaFactoryWrapper(SerializerProvider p) {
-        this(p, new WrapperFactory());
+    public SchemaFactoryWrapper(ObjectMapper originalMapper, SerializerProvider p) {
+        this(originalMapper, p, new WrapperFactory());
     }
 
-    protected SchemaFactoryWrapper(WrapperFactory wrapperFactory) {
-        this(null, wrapperFactory);
+    protected SchemaFactoryWrapper(ObjectMapper originalMapper, WrapperFactory wrapperFactory) {
+        this(originalMapper, null, wrapperFactory);
     }
 
-    protected SchemaFactoryWrapper(SerializerProvider p, WrapperFactory wrapperFactory) {
+    protected SchemaFactoryWrapper(ObjectMapper originalMapper, SerializerProvider p, WrapperFactory wrapperFactory) {
         provider = p;
         schemaProvider = new JsonSchemaFactory();
         visitorFactory = new FormatVisitorFactory(wrapperFactory);
+        this.originalMapper = originalMapper != null ? originalMapper.copy() : null;
     }
+
 
     /*
     /*********************************************************************
@@ -68,9 +75,16 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     }
 
     @Override
+    public SchemaFactoryWrapper setVisitorContext(VisitorContext rvc) {
+        visitorContext = rvc;
+        return this;
+    }
+
+    @Override
     public JsonAnyFormatVisitor expectAnyFormat(JavaType convertedType) {
         ObjectSchema s = schemaProvider.objectSchema();
         this.schema = s;
+        this.originalType = convertedType;
         return new AnyVisitor(s);
     }
 
@@ -78,13 +92,15 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
         ArraySchema s = schemaProvider.arraySchema();
         this.schema = s;
-        return visitorFactory.arrayFormatVisitor(provider, s, visitorContext);
+        this.originalType = convertedType;
+        return visitorFactory.arrayFormatVisitor(provider, s, visitorContext, convertedType, originalMapper);
     }
 
     @Override
     public JsonBooleanFormatVisitor expectBooleanFormat(JavaType convertedType) {
         BooleanSchema s = schemaProvider.booleanSchema();
         this.schema = s;
+        this.originalType = convertedType;
         return visitorFactory.booleanFormatVisitor(s);
     }
 
@@ -92,6 +108,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     public JsonIntegerFormatVisitor expectIntegerFormat(JavaType convertedType) {
         IntegerSchema s = schemaProvider.integerSchema();
         this.schema = s;
+        this.originalType = convertedType;
         return visitorFactory.integerFormatVisitor(s);
     }
 
@@ -99,6 +116,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     public JsonNullFormatVisitor expectNullFormat(JavaType convertedType) {
         NullSchema s = schemaProvider.nullSchema();
         schema = s;
+        this.originalType = convertedType;
         return visitorFactory.nullFormatVisitor(s);
     }
 
@@ -106,13 +124,36 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     public JsonNumberFormatVisitor expectNumberFormat(JavaType convertedType) {
         NumberSchema s = schemaProvider.numberSchema();
         schema = s;
+        this.originalType = convertedType;
         return visitorFactory.numberFormatVisitor(s);
+    }
+
+    @Override
+    public JsonStringFormatVisitor expectStringFormat(JavaType convertedType) {
+        StringSchema s = schemaProvider.stringSchema();
+        schema = s;
+        this.originalType = convertedType;
+        return visitorFactory.stringFormatVisitor(s);
+    }
+
+    @Override
+    public JsonMapFormatVisitor expectMapFormat(JavaType convertedType)
+            throws JsonMappingException {
+        /* 22-Nov-2012, tatu: Looks as if JSON Schema did not have
+         *   concept of Map (distinct from Record or Object); so best
+         *   we can do is to consider it a vague kind-a Object...
+         */
+        ObjectSchema s = schemaProvider.objectSchema();
+        schema = s;
+        this.originalType = convertedType;
+        return visitorFactory.mapFormatVisitor(provider, s, visitorContext, originalMapper);
     }
 
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
         ObjectSchema s = schemaProvider.objectSchema();
         schema = s;
+        this.originalType = convertedType;
 
         // if we don't already have a recursive visitor context, create one
         if (visitorContext == null) {
@@ -125,32 +166,28 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
             s.setId(schemaUri);
         }
 
-        return visitorFactory.objectFormatVisitor(provider, s, visitorContext);
+        return visitorFactory.objectFormatVisitor(provider, s, visitorContext, convertedType, originalMapper);
     }
 
+
     @Override
-    public JsonStringFormatVisitor expectStringFormat(JavaType convertedType) {
-        StringSchema s = schemaProvider.stringSchema();
+    public PolymorphicObjectVisitor expectPolyMorphicObjectFormat(JavaType convertedType) throws JsonMappingException {
+        PolymorphicObjectSchema s = schemaProvider.polymorphicObjectSchema();
         schema = s;
-        return visitorFactory.stringFormatVisitor(s);
-    }
+        this.originalType = convertedType;
+        // if we don't already have a recursive visitor context, create one
+        if (visitorContext == null) {
+            visitorContext = new VisitorContext();
+        }
 
-    @Override
-    public JsonMapFormatVisitor expectMapFormat(JavaType type)
-            throws JsonMappingException {
-        /* 22-Nov-2012, tatu: Looks as if JSON Schema did not have
-         *   concept of Map (distinct from Record or Object); so best
-         *   we can do is to consider it a vague kind-a Object...
-         */
-        ObjectSchema s = schemaProvider.objectSchema();
-        schema = s;
-        return visitorFactory.mapFormatVisitor(provider, s, visitorContext);
-    }
+        // give each object schema a reference id and keep track of the ones we've seen
+        String schemaUri = visitorContext.addSeenSchemaUri(convertedType);
+        if (schemaUri != null) {
+            s.setId(schemaUri);
+        }
 
-    @Override
-    public SchemaFactoryWrapper setVisitorContext(VisitorContext rvc) {
-        visitorContext = rvc;
-        return this;
+
+        return visitorFactory.polymorphicObjectVisitor(provider, s, visitorContext, convertedType, originalMapper);
     }
 
     /*
@@ -160,25 +197,11 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
      */
 
     public JsonSchema finalSchema() {
+        if (originalType != null) {
+            return new VisitorUtils(originalMapper, visitorContext, provider).decorateWithTypeInformation(schema, originalType);
+        }
         return schema;
     }
 
-    @Override
-    public PolymorphicObjectVisitor expectPolyMorphicObjectFormat(JavaType type) throws JsonMappingException {
-        PolymorphicObjectSchema s = schemaProvider.polymorphicObjectSchema();
-        schema = s;
-        // if we don't already have a recursive visitor context, create one
-        if (visitorContext == null) {
-            visitorContext = new VisitorContext();
-        }
 
-        // give each object schema a reference id and keep track of the ones we've seen
-        String schemaUri = visitorContext.addSeenSchemaUri(type);
-        if (schemaUri != null) {
-            s.setId(schemaUri);
-        }
-
-
-        return visitorFactory.polymorphicObjectVisitor(visitorContext, s, type);
-    }
 }

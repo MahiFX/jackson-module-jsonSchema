@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.customProperties;
 
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
@@ -20,8 +21,8 @@ import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
     private static class TitleSchemaFactoryWrapperFactory extends WrapperFactory {
         @Override
-        public SchemaFactoryWrapper getWrapper(SerializerProvider p) {
-            SchemaFactoryWrapper wrapper = new TitleSchemaFactoryWrapper();
+        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p) {
+            SchemaFactoryWrapper wrapper = new TitleSchemaFactoryWrapper(mapper);
             if (p != null) {
                 wrapper.setProvider(p);
             }
@@ -31,8 +32,8 @@ public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
         ;
 
         @Override
-        public SchemaFactoryWrapper getWrapper(SerializerProvider p, VisitorContext rvc) {
-            SchemaFactoryWrapper wrapper = new TitleSchemaFactoryWrapper();
+        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p, VisitorContext rvc) {
+            SchemaFactoryWrapper wrapper = new TitleSchemaFactoryWrapper(mapper);
             if (p != null) {
                 wrapper.setProvider(p);
             }
@@ -43,8 +44,8 @@ public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     ;
 
-    public TitleSchemaFactoryWrapper() {
-        super(new TitleSchemaFactoryWrapperFactory());
+    public TitleSchemaFactoryWrapper(ObjectMapper mapper) {
+        super(mapper, new TitleSchemaFactoryWrapperFactory());
     }
 
     @Override

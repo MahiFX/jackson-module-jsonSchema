@@ -2,6 +2,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4.customProperties;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
@@ -29,8 +30,8 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     private static class HyperSchemaFactoryWrapperFactory extends WrapperFactory {
         @Override
-        public SchemaFactoryWrapper getWrapper(SerializerProvider p) {
-            SchemaFactoryWrapper wrapper = new HyperSchemaFactoryWrapper();
+        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p) {
+            SchemaFactoryWrapper wrapper = new HyperSchemaFactoryWrapper(mapper);
             wrapper.setProvider(p);
             return wrapper;
         }
@@ -40,8 +41,8 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     ;
 
-    public HyperSchemaFactoryWrapper() {
-        super(new HyperSchemaFactoryWrapperFactory());
+    public HyperSchemaFactoryWrapper(ObjectMapper mapper) {
+        super(mapper, new HyperSchemaFactoryWrapperFactory());
     }
 
     @Override
@@ -113,7 +114,7 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
                         return new ReferenceSchema(seenSchemaUri);
                     }
                 }
-                HyperSchemaFactoryWrapper targetVisitor = new HyperSchemaFactoryWrapper();
+                HyperSchemaFactoryWrapper targetVisitor = new HyperSchemaFactoryWrapper(originalMapper);
                 targetVisitor.setVisitorContext(visitorContext);
 
                 ((DefaultSerializerProvider) provider).acceptJsonFormatVisitor(targetType, targetVisitor);

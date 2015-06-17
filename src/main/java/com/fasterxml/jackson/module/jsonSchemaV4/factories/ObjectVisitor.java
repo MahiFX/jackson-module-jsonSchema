@@ -4,39 +4,44 @@ import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
 import java.util.HashMap;
 
-import static com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorUtils.isPolymorphic;
 
 public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         implements JsonSchemaProducer, Visitor {
     protected final ObjectSchema schema;
+    private final JavaType originalType;
     protected SerializerProvider provider;
     private WrapperFactory wrapperFactory;
     private VisitorContext visitorContext;
+    private ObjectMapper originalMapper;
 
     /**
      * @deprecated Since 2.4; call constructor that takes {@link WrapperFactory}
      */
     @Deprecated
     public ObjectVisitor(SerializerProvider provider, ObjectSchema schema) {
-        this(provider, schema, new WrapperFactory());
+        this(provider, schema, new WrapperFactory(), null);
     }
 
-    public ObjectVisitor(SerializerProvider provider, ObjectSchema schema, WrapperFactory wrapperFactory) {
+    public ObjectVisitor(SerializerProvider provider, ObjectSchema schema, WrapperFactory wrapperFactory, JavaType originalType) {
         this.provider = provider;
         this.schema = schema;
         this.wrapperFactory = wrapperFactory;
+        this.originalType = originalType;
     }
+
 
     /*
     /*********************************************************************
@@ -45,7 +50,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
      */
 
     @Override
-    public ObjectSchema getSchema() {
+    public JsonSchema getSchema() {
         return schema;
     }
 
@@ -115,7 +120,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
             return new ReferenceSchema(seenSchemaUri);
         }
 
-        SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(getProvider(), visitorContext);
+        SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
         JsonSerializer<Object> ser = getSer(prop);
         if (ser != null) {
             JavaType type = prop.getType();
@@ -136,15 +141,16 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
                 return new ReferenceSchema(seenSchemaUri);
             }
         }
-        if (isPolymorphic(propertyTypeHint.getRawClass())) {
-            VisitorUtils.PolymorphiSchemaDefinition polymorphiSchemaDefinition = new VisitorUtils(visitorContext).extractPolymophicTypes(propertyTypeHint.getRawClass());
+        PolymorphicHandlingUtil polymorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, propertyTypeHint);
+        if (polymorphicHandlingUtil.isPolymorphic()) {
+            PolymorphicHandlingUtil.PolymorphiSchemaDefinition polymorphiSchemaDefinition = polymorphicHandlingUtil.extractPolymophicTypes();
             if (schema.getDefinitions() == null) {
                 schema.setDefinitions(new HashMap<String, JsonSchema>());
             }
             schema.getDefinitions().putAll(polymorphiSchemaDefinition.getDefinitions());
             return new AnyOfSchema(polymorphiSchemaDefinition.getReferences());
         } else {
-            SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(getProvider(), visitorContext);
+            SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
             handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
             return visitor.finalSchema();
         }
@@ -169,4 +175,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         return this;
     }
 
+    public void setOriginalMapper(ObjectMapper originalMapper) {
+        this.originalMapper = originalMapper;
+    }
 }

@@ -3,6 +3,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4.customProperties;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
@@ -27,27 +28,27 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     private static class ValidationSchemaFactoryWrapperFactory extends WrapperFactory {
         @Override
-        public SchemaFactoryWrapper getWrapper(SerializerProvider p) {
-            SchemaFactoryWrapper wrapper = new ValidationSchemaFactoryWrapper();
+        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p) {
+            SchemaFactoryWrapper wrapper = new ValidationSchemaFactoryWrapper(mapper);
             wrapper.setProvider(p);
             return wrapper;
         }
 
         @Override
-        public SchemaFactoryWrapper getWrapper(SerializerProvider p, VisitorContext rvc) {
-            SchemaFactoryWrapper wrapper = new ValidationSchemaFactoryWrapper();
+        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p, VisitorContext rvc) {
+            SchemaFactoryWrapper wrapper = new ValidationSchemaFactoryWrapper(mapper);
             wrapper.setProvider(p);
             wrapper.setVisitorContext(rvc);
             return wrapper;
         }
     }
 
-    public ValidationSchemaFactoryWrapper() {
-        this(new AnnotationConstraintResolver());
+    public ValidationSchemaFactoryWrapper(ObjectMapper mapper) {
+        this(mapper, new AnnotationConstraintResolver());
     }
 
-    public ValidationSchemaFactoryWrapper(ValidationConstraintResolver constraintResolver) {
-        super(new ValidationSchemaFactoryWrapperFactory());
+    public ValidationSchemaFactoryWrapper(ObjectMapper mapper, ValidationConstraintResolver constraintResolver) {
+        super(mapper, new ValidationSchemaFactoryWrapperFactory());
         this.constraintResolver = constraintResolver;
     }
 
