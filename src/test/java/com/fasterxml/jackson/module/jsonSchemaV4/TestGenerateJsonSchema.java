@@ -139,21 +139,22 @@ public class TestGenerateJsonSchema
         JsonSchema prop1 = properties.get("property1");
         assertNotNull(prop1);
         assertTrue(prop1.isIntegerSchema());
-        //assertNull(prop1.getRequired());
+        assertNotNull(jsonSchema.asObjectSchema().getRequired());
+        assertFalse(jsonSchema.asObjectSchema().getRequired().contains("property1"));
         assertNull(prop1.getReadonly());
 
         JsonSchema prop2 = properties.get("property2");
         assertNotNull(prop2);
         assertTrue(prop2.isStringSchema());
-        //assertNull(prop2.getRequired());
+        assertFalse(jsonSchema.asObjectSchema().getRequired().contains("property2"));
         assertNull(prop2.getReadonly());
 
         JsonSchema prop3 = properties.get("property3");
         assertNotNull(prop3);
         assertTrue(prop3.isArraySchema());
-        // assertNull(prop3.getRequired());
+        assertFalse(jsonSchema.asObjectSchema().getRequired().contains("property3"));
         assertNull(prop3.getReadonly());
-        Items items = prop3.asArraySchema().getItems();
+        Items items = (Items) prop3.asArraySchema().getItems();
         assertTrue(items.isSingleItems());
         JsonSchema itemType = items.asSingleItems().getSchema();
         assertNotNull(itemType);
@@ -162,9 +163,9 @@ public class TestGenerateJsonSchema
         JsonSchema prop4 = properties.get("property4");
         assertNotNull(prop4);
         assertTrue(prop4.isArraySchema());
-        //assertNull(prop4.getRequired());
+        assertFalse(jsonSchema.asObjectSchema().getRequired().contains("property4"));
         assertNull(prop4.getReadonly());
-        items = prop4.asArraySchema().getItems();
+        items = (Items) prop4.asArraySchema().getItems();
         assertTrue(items.isSingleItems());
         itemType = items.asSingleItems().getSchema();
         assertNotNull(itemType);
@@ -172,7 +173,7 @@ public class TestGenerateJsonSchema
 
         JsonSchema prop5 = properties.get("property5");
         assertNotNull(prop5);
-        //assertTrue(prop5.getRequired());
+        assertTrue(jsonSchema.asObjectSchema().getRequired().contains("property5"));
         assertNull(prop5.getReadonly());
 
     }

@@ -106,6 +106,25 @@ public class TestReadJsonSchema
         _testSimple("SchemableArrays - additionalItems", jsonSchema);
     }
 
+    public void testArrayItems() throws Exception {
+        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
+        MAPPER.acceptJsonFormatVisitor(MAPPER.constructType(SchemableArrays.class), visitor);
+        JsonSchema jsonSchema = visitor.finalSchema();
+        assertNotNull(jsonSchema);
+
+        assertTrue(jsonSchema.isObjectSchema());
+        for (JsonSchema propertySchema : jsonSchema.asObjectSchema().getProperties().values()) {
+            assertTrue(propertySchema.isArraySchema());
+            if (propertySchema.asArraySchema().getItems() != null) {
+                ArraySchema.ArrayItems arrayItems = new ArraySchema.ArrayItems(new JsonSchema[]{propertySchema.asArraySchema().getItems().asSingleItems().getSchema()});
+                propertySchema.asArraySchema().setItems(arrayItems);
+            }
+        }
+
+        _testSimple("SchemableArrays - arrayItems", jsonSchema);
+    }
+
+
     public void _testSimple(Class<?> type) throws Exception {
         SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
         MAPPER.acceptJsonFormatVisitor(MAPPER.constructType(type), visitor);

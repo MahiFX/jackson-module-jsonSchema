@@ -84,4 +84,9 @@ public class JsonSchemaIdResolver extends TypeIdResolverBase
      public String idFromBaseType() {
          return null;
      }
- }
+
+    @Override
+    public JavaType typeFromId(String s) {
+        throw new UnsupportedOperationException("Getting JavaType from Id is not supported without a Databinding Context");
+    }
+}

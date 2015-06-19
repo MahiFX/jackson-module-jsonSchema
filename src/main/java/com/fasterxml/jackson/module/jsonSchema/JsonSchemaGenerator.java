@@ -1,6 +1,9 @@
 package com.fasterxml.jackson.module.jsonSchema;
 
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchema.factories.WrapperFactory;
 
@@ -28,7 +31,7 @@ public class JsonSchemaGenerator
      * @since 2.8.1
      */
     private final SchemaFactoryWrapper _visitor;
-    
+
     public JsonSchemaGenerator(ObjectMapper mapper) {
         this(mapper, (WrapperFactory) null);
     }
@@ -86,7 +89,7 @@ public class JsonSchemaGenerator
         if (visitor == null) {
             visitor = _wrapperFactory.getWrapper(null);
         }
-        _writer.acceptJsonFormatVisitor(type, visitor);
+        _writer.acceptJsonFormatVisitor(_mapper.constructType(type), visitor);
         return visitor.finalSchema();
     }
 

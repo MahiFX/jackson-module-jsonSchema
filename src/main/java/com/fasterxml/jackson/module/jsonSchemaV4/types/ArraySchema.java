@@ -26,6 +26,7 @@ public class ArraySchema extends ContainerTypeSchema {
      * see {@link Items}
      */
     @JsonProperty
+    @JsonDeserialize(using = ArrayItemsDeserializer.class)
     protected ArraySchema.Items items;
 
     /**
@@ -102,6 +103,13 @@ public class ArraySchema extends ContainerTypeSchema {
         this.additionalItems = additionalItems;
     }
 
+    /**
+     * When this attribute value is an array of jsonSchemas and the instance
+     * value is an array, each position in the instance array MUST conform
+     * to the jsonSchema in the corresponding position for this array.  This
+     * called tuple typing.  When tuple typing is used, additional items are
+     * allowed, disallowed, or constrained by the "additionalItems"
+     */
     public void setItems(ArraySchema.Items items) {
         this.items = items;
     }
@@ -154,18 +162,15 @@ public class ArraySchema extends ContainerTypeSchema {
         }
     }
 
-    /**
-     * When this attribute value is an array of jsonSchemas and the instance
-     * value is an array, each position in the instance array MUST conform
-     * to the jsonSchema in the corresponding position for this array.  This
-     * called tuple typing.  When tuple typing is used, additional items are
-     * allowed, disallowed, or constrained by the "additionalItems"
-     */
     public static class ArrayItems extends ArraySchema.Items {
 
 
-        @JsonProperty
-        private JsonSchema[] jsonSchemas;
+        @JsonIgnore
+        private final JsonSchema[] jsonSchemas;
+
+        public ArrayItems(JsonSchema[] jsonSchema) {
+            this.jsonSchemas = jsonSchema;
+        }
 
         /* (non-Javadoc)
          * @see com.fasterxml.jackson.databind.jsonSchema.types.ArraySchema.Items#asArrayItems()
@@ -188,9 +193,8 @@ public class ArraySchema extends ContainerTypeSchema {
             }
         }
 
-        public void setJsonSchemas(JsonSchema[] jsonSchemas) {
-            this.jsonSchemas = jsonSchemas;
-        }
+
+        @JsonValue
         public JsonSchema[] getJsonSchemas() {
             return jsonSchemas;
         }

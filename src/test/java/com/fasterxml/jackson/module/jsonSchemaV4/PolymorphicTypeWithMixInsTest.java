@@ -76,6 +76,7 @@ public class PolymorphicTypeWithMixInsTest {
 
     }
 
+
     private boolean containsReference(ReferenceSchema[] refSchemas, String name) {
         if (refSchemas == null) {
             return false;

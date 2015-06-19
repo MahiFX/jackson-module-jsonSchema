@@ -3,6 +3,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import org.junit.Ignore;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -101,6 +102,7 @@ public class EnumGenerationTest extends SchemaTestBase {
 
     // for [jsonSchema#57]
     @SuppressWarnings("unchecked")
+    @Ignore("Requires jackson-databind 2.6.0")
     public void testEnumWithJsonValue() throws Exception {
         JsonSchema schema = SCHEMA_GEN.generateSchema(EnumViaJsonValue.class);
 
