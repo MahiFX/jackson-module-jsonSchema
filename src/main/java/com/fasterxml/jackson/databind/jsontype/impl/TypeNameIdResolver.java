@@ -139,7 +139,7 @@ public class TypeNameIdResolver extends TypeIdResolverBase {
         return _idToType.get(id);
     }
 
-    @Override
+    //@Override
     public String getDescForKnownTypeIds() {
         return new TreeSet<String>(_idToType.keySet()).toString();
     }

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 /**
  * Created by zoliszel on 09/06/2015.
  */
-@JsonTypeName("JSONSubTypeBaseClass")
+@JsonTypeName(JSONSubTypeBaseClass.TYPE)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
         @JsonSubTypes.Type(Person.class),
@@ -18,10 +18,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 })
 public abstract class JSONSubTypeBaseClass {
 
+    public static final String TYPE = "JSONSubTypeBaseClass";
 }
 
 @JsonTypeName(Person.TYPE_NAME)
-@JsonSubTypes({})
 class Person extends JSONSubTypeBaseClass {
 
     public static final String TYPE_NAME = "Person";

@@ -60,7 +60,8 @@ public class PolymorphicHandlingUtil {
         AnnotatedClass classWithoutSuperType = AnnotatedClass.constructWithoutSuperTypes(clazz, config.getAnnotationIntrospector(), config);
         Collection<NamedType> namedTypes = null;
         if (config.getSubtypeResolver() != null) {
-            namedTypes = new ArrayList<NamedType>(config.getSubtypeResolver().collectAndResolveSubtypesByClass(config, classWithoutSuperType));
+
+            namedTypes = new ArrayList<NamedType>(config.getSubtypeResolver().collectAndResolveSubtypes(classWithoutSuperType, config, config.getAnnotationIntrospector()));
         }
 
 
@@ -91,26 +92,9 @@ public class PolymorphicHandlingUtil {
             return;
         }
 
-        //AnnotatedClass classWithoutSuperType=AnnotatedClass.constructWithoutSuperTypes(beanDescription.getBeanClass(),provider.getAnnotationIntrospector(),provider.getConfig());
 
         Collection<NamedType> namedTypes = extractSubTypes(beanDescription.getBeanClass(), provider.getConfig());
-        /*
-        if (provider.getConfig().getSubtypeResolver() != null) {
-            namedTypes = new ArrayList<NamedType>(provider.getConfig().getSubtypeResolver().collectAndResolveSubtypesByClass(provider.getConfig(), classWithoutSuperType));
-        }
 
-
-
-        Iterator<NamedType> it = namedTypes.iterator();
-        while(it.hasNext()){
-            NamedType namedType = it.next();
-            if(Modifier.isAbstract(namedType.getType().getModifiers())){
-                //remove abstract classes, should have full type information in subclasses
-                it.remove();
-            }
-        }
-
-        */
         if (!namedTypes.isEmpty()) {
             subTypes = namedTypes;
         }
@@ -137,6 +121,8 @@ public class PolymorphicHandlingUtil {
             //here we make a copy of the mapper which is no longer polymorphic "aware". This is needed because all of the subtypes are defined at this point
             //and we do not want subtypes redefine another potential subtypes. i.e. A extends B, B extends C if we create a schema for A than all subtypes are known upfront (A,B,C)
             //hence the schema of B do not need to define that it can be B or C
+            //TODO this is not correct, if the subtype has another member which is polymorphic we do want to include that in
+            //the generated schema
             subSchemas[i] = visitorUtils.schema(namedType.getType(), mapper.copy().setSerializerFactory(BeanSerializerFactory.instance));
             definitions.put(namedType.getName(), subSchemas[i]);
         }

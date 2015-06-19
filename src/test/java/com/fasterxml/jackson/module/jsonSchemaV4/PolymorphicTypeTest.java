@@ -39,12 +39,17 @@ public class PolymorphicTypeTest {
         Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
         Assert.assertTrue("Found no Person schema", schema.getDefinitions().containsKey("Person"));
         Assert.assertTrue("Found no BigCompany schema", schema.getDefinitions().containsKey("BigCompany"));
-        Assert.assertTrue("Array items should be a one of schema", schema.asArraySchema().getItems().asSingleItems().getSchema() instanceof AnyOfSchema);
-        Assert.assertTrue("Any OF Schema Should Contain Company Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), "Person"));
-        Assert.assertTrue("Any OF Schema Should Contain Person Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), "Company"));
-        Assert.assertTrue("Any OF Schema Should Contain Person Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), "BigCompany"));
+        Assert.assertTrue("Array items should be a one of schema", (schema.asArraySchema().getItems()).asSingleItems().getSchema() instanceof AnyOfSchema);
+        Assert.assertTrue("Any OF Schema Should Contain Company Reference", containsReference(getAnyOfFromArray(schema).getAnyOf(), "Person"));
+        Assert.assertTrue("Any OF Schema Should Contain Person Reference", containsReference(getAnyOfFromArray(schema).getAnyOf(), "Company"));
+        Assert.assertTrue("Any OF Schema Should Contain Person Reference", containsReference(getAnyOfFromArray(schema).getAnyOf(), "BigCompany"));
 
     }
+
+    private AnyOfSchema getAnyOfFromArray(JsonSchema schema) {
+        return (AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema();
+    }
+
 
     @Test
     public void polymorphicSchemaGenerationObject() {

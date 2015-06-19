@@ -13,6 +13,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
@@ -71,7 +72,7 @@ public class VisitorUtils {
         if (provider.getConfig().getSubtypeResolver() == null) {
             namedTypes = Collections.emptyList();
         } else {
-            namedTypes = provider.getConfig().getSubtypeResolver().collectAndResolveSubtypesByClass(provider.getConfig(), beanDescription.getClassInfo());
+            namedTypes = provider.getConfig().getSubtypeResolver().collectAndResolveSubtypes(beanDescription.getClassInfo(), provider.getConfig(), provider.getConfig().getAnnotationIntrospector());
 
         }
         TypeResolverBuilder<?> typer = provider.getConfig().getDefaultTyper(originalType);
@@ -97,18 +98,27 @@ public class VisitorUtils {
 
         switch (typeSerializer.getTypeInclusion()) {
             case PROPERTY:
-                if (!(originalSchema instanceof ObjectSchema)) {
-                    throw new IllegalArgumentException("Expecting ObjectSchema for type resolution property");
+                if (originalSchema instanceof PolymorphicObjectSchema) {
+                    return originalSchema; //PolymorphicObjects will have type information in it's sub-schemas
                 }
-                ((ObjectSchema) originalSchema).putProperty(typeSerializer.getPropertyName(), typeSchema);
-                return originalSchema;
+
+                if (originalSchema instanceof ArraySchema) {
+                    ArraySchema arraySchema = new ArraySchema();
+                    arraySchema.setAdditionalItems(new ArraySchema.NoAdditionalItems());
+                    arraySchema.setItems(new ArraySchema.ArrayItems(new JsonSchema[]{typeSchema, originalSchema}));
+                    return arraySchema;
+                }
+                if (originalSchema instanceof ObjectSchema) {
+                    ((ObjectSchema) originalSchema).putProperty(typeSerializer.getPropertyName(), typeSchema);
+                    return originalSchema;
+                }
+                break; //Unsupported schema type
 
             case WRAPPER_ARRAY:
                 ArraySchema arraySchema = new ArraySchema();
                 arraySchema.setAdditionalItems(new ArraySchema.NoAdditionalItems());
-                ArraySchema.ArrayItems arrayItems = new ArraySchema.ArrayItems();
-                arrayItems.setJsonSchemas(new JsonSchema[]{typeSchema, originalSchema});
-                arraySchema.setItems(arrayItems);
+                arraySchema.setItems(new ArraySchema.ArrayItems(new JsonSchema[]{typeSchema, originalSchema}));
+                break;
             case WRAPPER_OBJECT:
             case EXTERNAL_PROPERTY:
             case EXISTING_PROPERTY:
