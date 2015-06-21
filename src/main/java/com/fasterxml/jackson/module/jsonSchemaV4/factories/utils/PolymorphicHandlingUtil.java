@@ -7,9 +7,9 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorContext;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
 import java.lang.reflect.Modifier;
@@ -25,11 +25,11 @@ import java.util.Map;
  */
 public class PolymorphicHandlingUtil {
 
+    public static final String POLYMORPHIC_TYPE_NAME_SUFFIX = "_1";
     public interface PolymorphiSchemaDefinition {
-        public Map<String, JsonSchema> getDefinitions();
+        Map<String, JsonSchema> getDefinitions();
 
-        public ReferenceSchema[] getReferences();
-
+        ReferenceSchema[] getReferences();
     }
 
     protected final VisitorContext visitorContext;
@@ -64,7 +64,6 @@ public class PolymorphicHandlingUtil {
             namedTypes = new ArrayList<NamedType>(config.getSubtypeResolver().collectAndResolveSubtypes(classWithoutSuperType, config, config.getAnnotationIntrospector()));
         }
 
-
         Iterator<NamedType> it = namedTypes.iterator();
         while (it.hasNext()) {
             NamedType namedType = it.next();
@@ -74,7 +73,6 @@ public class PolymorphicHandlingUtil {
             }
         }
         return namedTypes;
-
 
     }
 
@@ -92,7 +90,6 @@ public class PolymorphicHandlingUtil {
             return;
         }
 
-
         Collection<NamedType> namedTypes = extractSubTypes(beanDescription.getBeanClass(), provider.getConfig());
 
         if (!namedTypes.isEmpty()) {
@@ -103,9 +100,9 @@ public class PolymorphicHandlingUtil {
 
     public PolymorphiSchemaDefinition extractPolymophicTypes() {
         if (!isPolymorphic()) {
-            throw new IllegalArgumentException("Argument is not visitPolymorphicObject (no JsonSubtype annotation (" + originalType.getRawClass().getSimpleName() + ")");
+            throw new IllegalArgumentException("Argument is not a polymorphic object (no JsonSubtype annotation (" + originalType.getRawClass().getSimpleName() + ")");
         }
-        //Class<?>[] polymorphicTypes = extractPolymorphicTypes(clazz).toArray(new Class<?>[0]);
+        visitorContext.addSeenSchemaUriForPolymorphic(originalType);
         final ReferenceSchema[] references = new ReferenceSchema[subTypes.size()];
         JsonSchema[] subSchemas = new JsonSchema[subTypes.size()];
         final Map<String, JsonSchema> definitions = new HashMap<String, JsonSchema>();
@@ -116,15 +113,20 @@ public class PolymorphicHandlingUtil {
             if (!namedType.hasName()) {
                 throw new IllegalArgumentException("No name associated with class " + namedType.getType().getSimpleName() + " try using @JsonTypeName annotation");
             }
-            references[i] = new ReferenceSchema(getDefinitionReference(namedType));
+            String subSchemaDefinitionName =getDefinitionReference(namedType);
+            JsonSchema subSchema = visitorUtils.schema(namedType.getType(), mapper);
+            String subTypeName =namedType.getName();
 
-            //here we make a copy of the mapper which is no longer polymorphic "aware". This is needed because all of the subtypes are defined at this point
-            //and we do not want subtypes redefine another potential subtypes. i.e. A extends B, B extends C if we create a schema for A than all subtypes are known upfront (A,B,C)
-            //hence the schema of B do not need to define that it can be B or C
-            //TODO this is not correct, if the subtype has another member which is polymorphic we do want to include that in
-            //the generated schema
-            subSchemas[i] = visitorUtils.schema(namedType.getType(), mapper.copy().setSerializerFactory(BeanSerializerFactory.instance));
-            definitions.put(namedType.getName(), subSchemas[i]);
+            if(namedType.getType() == originalType.getRawClass()){
+                subSchemaDefinitionName = subSchemaDefinitionName + POLYMORPHIC_TYPE_NAME_SUFFIX;
+                subTypeName = subTypeName + POLYMORPHIC_TYPE_NAME_SUFFIX;
+            }
+
+            references[i] = new ReferenceSchema(subSchemaDefinitionName);
+
+            subSchemas[i] = subSchema;
+
+            definitions.put(subTypeName, subSchemas[i]);
         }
 
         return new PolymorphiSchemaDefinition() {
@@ -141,48 +143,65 @@ public class PolymorphicHandlingUtil {
     }
 
     public boolean isPolymorphic() {
-        return subTypes.size() > 1;
+        return !visitorContext.visitedPolymorphicType(originalType) && subTypes.size() > 1;
     }
 
     protected String getDefinitionReference(NamedType namedType) {
+        if (!namedType.hasName()) {
+            throw new IllegalArgumentException("Class " + namedType.getClass().getSimpleName() + " has no JSON name. Try using @JsonTypeName annotation");
+        }
+        return "#/definitions/" + namedType.getName();
+    }
 
+    public static JsonSchema propagateDefinitionsUp(JsonSchema node){
+        Map<String,JsonSchema> allDefinitions = extractDefinitions(node,new HashMap<String, JsonSchema>());
+        if(!allDefinitions.isEmpty()){
+            node.setDefinitions(allDefinitions);
+        }
+        return node;
 
-        if (visitorContext != null) {
-            return visitorContext.javaTypeToUrn(mapper.constructType(namedType.getType()));
-        } else {
-            if (!namedType.hasName()) {
-                throw new IllegalArgumentException("Class " + namedType.getClass().getSimpleName() + " has no JSON name. Try using @JsonTypeName annotation");
+    }
+
+    private static Map<String,JsonSchema> extractDefinitions(JsonSchema node,Map<String,JsonSchema> definitionsSoFar){
+        if(node.isObjectSchema()){
+            if(node.asObjectSchema().getProperties()!=null) {
+                for (Map.Entry<String, JsonSchema> entry : node.asObjectSchema().getProperties().entrySet()) {
+                    mergeDefinitions(definitionsSoFar,extractDefinitions(entry.getValue(), definitionsSoFar));
+                }
             }
-            return "#/definitions/" + namedType.getName();
         }
+        else if(node.isArraySchema()){
+            if(node.asArraySchema().getItems()!=null){
+                if(node.asArraySchema().getItems().isSingleItems()){
+                    mergeDefinitions(definitionsSoFar,extractDefinitions(node.asArraySchema().getItems().asSingleItems().getSchema(),definitionsSoFar));
+                }
+                else if(node.asArraySchema().getItems().isArrayItems()){
+                    for(JsonSchema schema : node.asArraySchema().getItems().asArrayItems().getJsonSchemas()){
+                        mergeDefinitions(definitionsSoFar,extractDefinitions(schema,definitionsSoFar));
+                    }
+                }
+            }
+        }
+        if(node.getDefinitions()!=null) {
+            for(Map.Entry<String,JsonSchema> entry : node.getDefinitions().entrySet()){
+                mergeDefinitions(definitionsSoFar,extractDefinitions(entry.getValue(),definitionsSoFar));
 
+            }
+            mergeDefinitions(definitionsSoFar,node.getDefinitions());
+            node.setDefinitions(null);
+        }
+        return definitionsSoFar;
     }
-    /*
-    protected String getJsonTypeName(Class modelClass) {
-        if (modelClass.isAnnotationPresent(JsonTypeName.class)) {
-            return ((JsonTypeName) modelClass.getAnnotation(JsonTypeName.class)).value();
+
+    private static void mergeDefinitions(Map<String,JsonSchema> target, Map<String,JsonSchema> source){
+        if(source==null){
+            return;
         }
-        return modelClass.getSimpleName();
+        for(Map.Entry<String,JsonSchema> entry : source.entrySet()){
+            if(!(entry.getValue() instanceof ReferenceSchema) && !(entry.getValue() instanceof AnyOfSchema)){
+                target.put(entry.getKey(),entry.getValue());
+            }
+        }
     }
-
-    protected List<Class<?>> extractPolymorphicTypes(Class<?> clazz) {
-        if (!clazz.isAnnotationPresent(JsonSubTypes.class)) {
-            return Collections.emptyList();
-        }
-
-        JsonSubTypes subTypes = clazz.getAnnotation(JsonSubTypes.class);
-        if (subTypes.value() == null || subTypes.value().length == 0) {
-            throw new IllegalStateException("Found class (" + clazz.getSimpleName() + ") with empty JsonSubTypes annotation");
-        }
-
-        List<Class<?>> javaSubTypes = new ArrayList<Class<?>>();
-        for (int i = 0; i < subTypes.value().length; ++i) {
-            javaSubTypes.add(subTypes.value()[i].value());
-            javaSubTypes.addAll(extractPolymorphicTypes(subTypes.value()[i].value()));
-
-        }
-        return javaSubTypes;
-    }
-    */
 
 }

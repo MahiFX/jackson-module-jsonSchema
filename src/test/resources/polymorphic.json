@@ -6,11 +6,11 @@
   },
   {
     "@type": "Company",
-    "name": "MahiFx"
+    "nameCompany": "MahiFx"
   },
   {
     "@type": "BigCompany",
-    "name": "Zoltan co",
+    "nameCompany": "Zoltan co",
     "directorName": "Zoltan"
   }
 ]

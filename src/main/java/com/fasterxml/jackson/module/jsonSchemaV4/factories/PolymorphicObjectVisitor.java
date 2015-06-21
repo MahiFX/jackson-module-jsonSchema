@@ -50,7 +50,6 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
         return null;
     }
 
-
     public void visitPolymorphicObject(JavaType type) {
         PolymorphicHandlingUtil handlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, type);
         if (handlingUtil.isPolymorphic()) {

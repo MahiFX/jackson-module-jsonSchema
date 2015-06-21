@@ -55,14 +55,13 @@ class Company extends JSONSubTypeBaseClass {
     }
 
     public Company(String name) {
-        this.name = name;
+        this.nameCompany = name;
     }
 
 
     @JsonProperty(required = true)
     @JsonPropertyDescription("This the name of the company")
-    public String name;
-
+    public String nameCompany;
 }
 
 @JsonTypeName(BigCompany.TYPE_NAME)

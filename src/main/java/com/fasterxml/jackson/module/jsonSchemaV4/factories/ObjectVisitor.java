@@ -3,11 +3,13 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
+import com.fasterxml.jackson.databind.jsonschema.SchemaAware;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
@@ -23,8 +25,9 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
     protected final ObjectSchema schema;
     private final JavaType originalType;
     protected SerializerProvider provider;
+    protected VisitorContext visitorContext;
     private WrapperFactory wrapperFactory;
-    private VisitorContext visitorContext;
+
     private ObjectMapper originalMapper;
 
     /**
@@ -128,6 +131,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
                 throw new IllegalStateException("Missing type for property '" + prop.getName() + "'");
             }
             ser.acceptJsonFormatVisitor(visitor, type);
+
         }
         return visitor.finalSchema();
     }

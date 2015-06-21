@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.VisitorUtils;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
@@ -23,6 +24,9 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
 
 /**
  * @author jphelan
@@ -55,6 +59,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         schemaProvider = new JsonSchemaFactory();
         visitorFactory = new FormatVisitorFactory(wrapperFactory);
         this.originalMapper = originalMapper != null ? originalMapper.copy() : null;
+        this.visitorContext= new VisitorContext();
     }
 
 
@@ -154,11 +159,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         ObjectSchema s = schemaProvider.objectSchema();
         schema = s;
         this.originalType = convertedType;
-
-        // if we don't already have a recursive visitor context, create one
-        if (visitorContext == null) {
-            visitorContext = new VisitorContext();
-        }
+        assert(visitorContext!=null);
 
         // give each object schema a reference id and keep track of the ones we've seen
         String schemaUri = visitorContext.addSeenSchemaUri(convertedType);
@@ -175,17 +176,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         PolymorphicObjectSchema s = schemaProvider.polymorphicObjectSchema();
         schema = s;
         this.originalType = convertedType;
-        // if we don't already have a recursive visitor context, create one
-        if (visitorContext == null) {
-            visitorContext = new VisitorContext();
-        }
-
-        // give each object schema a reference id and keep track of the ones we've seen
-        String schemaUri = visitorContext.addSeenSchemaUri(convertedType);
-        if (schemaUri != null) {
-            s.setId(schemaUri);
-        }
-
+        assert(visitorContext!=null);
 
         return visitorFactory.polymorphicObjectVisitor(provider, s, visitorContext, convertedType, originalMapper);
     }
@@ -197,10 +188,21 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
      */
 
     public JsonSchema finalSchema() {
+        JsonSchema result = schema;
         if (originalType != null) {
-            return new VisitorUtils(originalMapper, visitorContext, provider).decorateWithTypeInformation(schema, originalType);
+            result = new VisitorUtils(originalMapper, visitorContext, provider).decorateWithTypeInformation(schema, originalType);
         }
-        return schema;
+        result = PolymorphicHandlingUtil.propagateDefinitionsUp(result);
+      //  System.out.println(toJson(result,result.getClass(),new ObjectMapper()));
+        return result;
+    }
+
+    public static String toJson(Object o, Type type, ObjectMapper mapper) {
+        try {
+            return mapper.writer().writeValueAsString(o);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

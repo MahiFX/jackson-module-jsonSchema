@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
 import org.junit.Assert;
 import org.junit.Before;
@@ -144,9 +145,10 @@ public class TypeDecorationTest {
         mapper.acceptJsonFormatVisitor(JSONSubTypeBaseClass.class, wrapper);
         JsonSchema schema = wrapper.finalSchema();
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
-        Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
-        Assert.assertTrue("No @Type Property", schema.getDefinitions().get("Company").asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("@Type property is not required", schema.getDefinitions().get("Company").asObjectSchema().getRequired().contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
+        Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX));
+        JsonSchema companySchema =schema.getDefinitions().get("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX);
+        Assert.assertTrue("No @Type Property", companySchema.asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
+        Assert.assertTrue("@Type property is not required", companySchema.asObjectSchema().getRequired().contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
     }
 
     @Test
@@ -164,9 +166,10 @@ public class TypeDecorationTest {
         JsonSchema schema = wrapper.finalSchema();
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
         JsonSchema[] arrayItems = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas();
-        Assert.assertTrue("Found no Company schema", arrayItems[1].getDefinitions().containsKey("Company"));
-        Assert.assertTrue("No @Type Property", arrayItems[1].getDefinitions().get("Company").asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("@Type property is not required", arrayItems[1].getDefinitions().get("Company").asObjectSchema().getRequired().contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
+        Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
+        JsonSchema companySchema = schema.getDefinitions().get("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX);
+        Assert.assertTrue("No @Type Property",companySchema.asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
+        Assert.assertTrue("@Type property is not required", companySchema.asObjectSchema().getRequired().contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
         Assert.assertNotNull("Type information is not encoded for Array type", arrayItems[0].asStringSchema());
         Assert.assertTrue("Type is not restricted", arrayItems[0].asStringSchema().getEnums().contains(JSONSubTypeBaseClassArrayMixIn.TYPE_NAME));
     }
