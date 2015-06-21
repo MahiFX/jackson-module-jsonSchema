@@ -42,6 +42,7 @@ public class VisitorUtils {
     }
 
     protected JsonSchema schema(Type t, ObjectMapper mapper) {
+        /*
         if (visitorContext != null) {
             if (visitorContext != null) {
                 String seenSchemaUri = visitorContext.getSeenSchemaUri(mapper.constructType(t));
@@ -50,6 +51,7 @@ public class VisitorUtils {
                 }
             }
         }
+        */
         try {
             mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
             return visitor.finalSchema();
@@ -120,6 +122,7 @@ public class VisitorUtils {
                 arraySchema.setItems(new ArraySchema.ArrayItems(new JsonSchema[]{typeSchema, originalSchema}));
                 break;
             case WRAPPER_OBJECT:
+                //TODO: support wrapper objects
             case EXTERNAL_PROPERTY:
             case EXISTING_PROPERTY:
             default:

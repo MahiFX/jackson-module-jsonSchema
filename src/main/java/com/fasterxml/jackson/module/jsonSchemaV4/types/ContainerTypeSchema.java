@@ -25,17 +25,6 @@ public abstract class ContainerTypeSchema extends SimpleTypeSchema {
     @JsonProperty(value = "enum", required = true)
     protected Set<String> enums = Collections.emptySet();
 
-    /**
-     * This provides an enumeration of all possible values that are valid
-     * for the instance property.  This MUST be an array, and each item in
-     * the array represents a possible value for the instance value.  If
-     * this attribute is defined, the instance value MUST be one of the
-     * values in the array in order for the schema to be valid.  Comparison
-     * of enum values uses the same algorithm as defined in "uniqueItems"
-     * (Section 5.15).
-     */
-    @JsonProperty(value = "oneOf", required = true)
-    protected Set<Object> oneOf = Collections.emptySet();
 
     @Override
     public ContainerTypeSchema asContainerSchema() {
@@ -55,13 +44,6 @@ public abstract class ContainerTypeSchema extends SimpleTypeSchema {
         this.enums = enums;
     }
 
-    public Set<Object> getOneOf() {
-        return oneOf;
-    }
-
-    public void setOneOf(Set<Object> oneOf) {
-        this.oneOf = oneOf;
-    }
 
     @Override
     public boolean equals(Object obj) {
@@ -71,8 +53,4 @@ public abstract class ContainerTypeSchema extends SimpleTypeSchema {
         return _equals((ContainerTypeSchema) obj);
     }
 
-    protected boolean _equals(ContainerTypeSchema that) {
-        return JsonSchema.equals(getOneOf(), that.getOneOf())
-                && super._equals(that);
-    }
 }

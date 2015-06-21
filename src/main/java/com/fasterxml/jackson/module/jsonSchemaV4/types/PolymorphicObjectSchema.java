@@ -9,7 +9,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
  * Created by zoliszel on 12/06/2015.
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.PROPERTY, property = "type")
-public class PolymorphicObjectSchema extends JsonSchema {
+public class PolymorphicObjectSchema extends ObjectSchema {
     @Override
     public JsonFormatTypes getType() {
         return JsonFormatTypes.OBJECT;

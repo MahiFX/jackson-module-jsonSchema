@@ -1,11 +1,26 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 
 public class TestJDKTypes extends SchemaTestBase {
     private final ObjectMapper MAPPER = new ObjectMapper();
+
+    private static class TestObj{
+
+        @JsonProperty(required = true)
+        private double value;
+
+        public double getValue() {
+            return value;
+        }
+
+        public void setValue(double value) {
+            this.value = value;
+        }
+    }
 
     /**
      * Test simple generation for simple/primitive numeric types
@@ -31,5 +46,10 @@ public class TestJDKTypes extends SchemaTestBase {
         schema = generator.generateSchema(BigDecimal.class);
         assertEquals("{\"type\":\"number\"}", MAPPER.writeValueAsString(schema));
 
+        schema = generator.generateSchema(TestObj.class);
+        assertEquals("{\"type\":\"object\",\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestJDKTypes:TestObj\",\"properties\":{\"value\":{\"type\":\"number\"}},\"required\":[\"value\"]}",MAPPER.writeValueAsString(schema));
+
+        schema = generator.generateSchema(TestObj[].class);
+        assertEquals("{\"type\":\"number\"}", MAPPER.writeValueAsString(schema));
     }
 }
