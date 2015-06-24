@@ -85,13 +85,28 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         return this;
     }
 
+    /**
+     * Any is not supported in V4. Backbridging it with Object Format
+     */
     @Override
     public JsonAnyFormatVisitor expectAnyFormat(JavaType convertedType) {
-        ObjectSchema s = schemaProvider.objectSchema();
+        /*
+
+
+        NotSchema s = schemaProvider.notSchema();
+        s.setNot(schemaProvider.nullSchema());
         this.schema = s;
         this.originalType = convertedType;
-        return new AnyVisitor(s);
+               */
+
+        PolymorphicObjectSchema simulatedAny = new PolymorphicObjectSchema();
+        simulatedAny.setTypes(AnyVisitor.FORMAT_TYPES_EXCEPT_ANY);
+        this.schema=simulatedAny;
+
+        return new AnyVisitor(this.schema);
     }
+
+
 
     @Override
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
@@ -162,7 +177,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         assert(visitorContext!=null);
 
         // give each object schema a reference id and keep track of the ones we've seen
-        String schemaUri = visitorContext.addSeenSchemaUri(convertedType);
+        String schemaUri = visitorContext.addSeenSchemaUri(convertedType,s.getType());
         if (schemaUri != null) {
             s.setId(schemaUri);
         }

@@ -16,15 +16,25 @@ public class ReferenceSchema extends SimpleTypeSchema {
     @JsonProperty
     protected String $ref;
 
-    public ReferenceSchema(String ref) {
+    public ReferenceSchema(String ref,JSONType referedSchemaType) {
         this.$ref = ref;
+        this.type=referedSchemaType;
     }
 
     @Override
     @JsonIgnore
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.OBJECT;
+    public JSONType getType() {
+        return type;
     }
+
+    @JsonIgnore
+    private JSONType type;
+
+
+    public void setType(JSONType type) {
+        this.type = type;
+    }
+
 
     @Override
     public String get$ref() {

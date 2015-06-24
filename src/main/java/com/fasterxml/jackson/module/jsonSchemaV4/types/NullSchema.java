@@ -15,9 +15,11 @@ public class NullSchema extends SimpleTypeSchema {
     }
 
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.NULL;
+    public JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.NULL);
     }
+
+
 
     @Override
     public boolean isNullSchema() {

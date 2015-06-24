@@ -101,8 +101,8 @@ public class ObjectSchema extends ContainerTypeSchema {
     }
 
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.OBJECT;
+    public JsonSchema.JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.OBJECT);
     }
 
     @Override

@@ -86,9 +86,11 @@ public class ArraySchema extends ContainerTypeSchema {
      * @see com.fasterxml.jackson.databind.jsonSchema.types.JsonSchema#getType()
      */
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.ARRAY;
+    public JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.ARRAY);
     }
+
+
 
     public Boolean getUniqueItems() {
         return uniqueItems;

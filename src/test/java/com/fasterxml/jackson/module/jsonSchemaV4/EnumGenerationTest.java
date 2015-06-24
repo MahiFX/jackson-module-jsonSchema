@@ -102,7 +102,7 @@ public class EnumGenerationTest extends SchemaTestBase {
 
     // for [jsonSchema#57]
     @SuppressWarnings("unchecked")
-    @Ignore("Requires jackson-databind 2.6.0")
+   // @Ignore("Requires jackson-databind 2.6.0")
     public void testEnumWithJsonValue() throws Exception {
         JsonSchema schema = SCHEMA_GEN.generateSchema(EnumViaJsonValue.class);
 

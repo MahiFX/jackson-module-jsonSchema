@@ -21,8 +21,8 @@ public class IntegerSchema extends NumberSchema {
     }
 
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.INTEGER;
+    public JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.INTEGER);
     }
 
     @Override

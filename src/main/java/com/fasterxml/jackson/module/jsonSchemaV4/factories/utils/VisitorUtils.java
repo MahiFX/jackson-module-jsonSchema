@@ -92,7 +92,7 @@ public class VisitorUtils {
         }
         StringSchema typeSchema = new StringSchema();
         String typeName = typeSerializer.getTypeIdResolver().idFromValueAndType(null, originalType.getRawClass());
-        if (typeName != null && typeName.length() > 0) {
+        if (typeName != null && typeName.length() > 0 && originalType.getRawClass() !=Object.class) {
             Set<String> allowedValues = new HashSet<String>();
             allowedValues.add(typeName);
             typeSchema.setEnums(allowedValues);

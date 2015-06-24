@@ -111,7 +111,7 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
                 if (visitorContext != null) {
                     String seenSchemaUri = visitorContext.getSeenSchemaUri(targetType);
                     if (seenSchemaUri != null) {
-                        return new ReferenceSchema(seenSchemaUri);
+                        return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(targetType));
                     }
                 }
                 HyperSchemaFactoryWrapper targetVisitor = new HyperSchemaFactoryWrapper(originalMapper);

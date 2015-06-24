@@ -3,16 +3,20 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.BeanProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ContainerTypeSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.JsonTypesDeserializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
@@ -21,6 +25,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.UnionTypeSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ValueTypeSchema;
 
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -84,7 +89,7 @@ import java.util.Map;
  * @author jphelan
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonTypeInfo(use = Id.CUSTOM, include = As.PROPERTY, property = "type")
+@JsonTypeInfo(use = Id.CUSTOM, include = As.EXISTING_PROPERTY, property = "type",visible = true)
 @JsonTypeIdResolver(JsonSchemaIdResolver.class)
 public abstract class JsonSchema {
     /**
@@ -134,6 +139,12 @@ public abstract class JsonSchema {
     @JsonProperty
     private Boolean readonly = null;
 
+
+    /**
+     * This attribute defines the type of the json object
+     */
+
+    protected JsonSchema.JSONType type;
     /**
      * This attribute is a string that provides a full description of the of
      * purpose the instance property.
@@ -271,9 +282,19 @@ public abstract class JsonSchema {
         this.definitions = definitions;
     }
 
-    @JsonIgnore
-    public abstract JsonFormatTypes getType();
 
+    @JsonProperty
+    @JsonDeserialize(using = JsonTypesDeserializer.class)
+    // @JsonTypeId
+    public abstract JsonSchema.JSONType getType();
+
+    public JsonSchema(){
+        setType(getType());
+    }
+
+    public void setType(JSONType type) {
+        this.type = type;
+    }
 
     /**
      * determine if this JsonSchema is an {@link ArraySchema}.
@@ -459,7 +480,7 @@ public abstract class JsonSchema {
         return equals(getId(), getId())
 
                 // 27-Apr-2015, tatu: Should not need to check type explicitly
-                //                 && equals(getType(), getType())
+                                 && equals(getType(), getType())
                 && equals(getReadonly(), that.getReadonly())
                 && equals(get$ref(), that.get$ref())
                 && equals(get$schema(), that.get$schema())
@@ -500,4 +521,119 @@ public abstract class JsonSchema {
         }
         return true;
     }
+
+
+    public static abstract class JSONType {
+
+        public boolean isSingleJSONType(){
+            return false;
+        }
+
+        public boolean isArrayJSONType(){
+            return false;
+        }
+
+        public SingleJsonType asSingleJsonType(){
+            return null;
+        }
+
+        public ArrayJsonType asArrayJsonType(){
+            return null;
+        }
+    }
+
+    public static class SingleJsonType extends JSONType{
+
+        @JsonIgnore
+        private JsonFormatTypes formatType;
+
+
+        public SingleJsonType(JsonFormatTypes formatType) {
+            this.formatType = formatType;
+        }
+
+        @JsonValue
+        public String getFormatType() {
+            return formatType.value();
+        }
+
+        public void setFormatType(String formatType) {
+            this.formatType = JsonFormatTypes.forValue(formatType);
+        }
+
+        @Override
+        public boolean isSingleJSONType() {
+            return true;
+        }
+
+        @Override
+        public SingleJsonType asSingleJsonType() {
+            return this;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            SingleJsonType that = (SingleJsonType) o;
+
+            return formatType == that.formatType;
+
+        }
+
+        @Override
+        public int hashCode() {
+            return formatType != null ? formatType.hashCode() : 0;
+        }
+
+        @Override
+        public String toString() {
+            return formatType.value();
+        }
+    }
+
+    public static class ArrayJsonType extends JSONType{
+
+        public ArrayJsonType(JsonFormatTypes[] formatTypes) {
+            this.formatTypes = formatTypes;
+        }
+
+        @JsonIgnore
+        private JsonFormatTypes[]  formatTypes = null;
+
+        @JsonValue
+        public JsonFormatTypes[]  getFormatTypes() {
+            return formatTypes;
+        }
+
+        @Override
+        public boolean isArrayJSONType() {
+            return true;
+        }
+
+        @Override
+        public ArrayJsonType asArrayJsonType() {
+            return this;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            ArrayJsonType that = (ArrayJsonType) o;
+
+            // Probably incorrect - comparing Object[] arrays with Arrays.equals
+            return Arrays.equals(formatTypes, that.formatTypes);
+
+        }
+
+        @Override
+        public int hashCode() {
+            return formatTypes != null ? Arrays.hashCode(formatTypes) : 0;
+        }
+    }
+
+
 }

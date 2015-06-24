@@ -15,8 +15,8 @@ public class BooleanSchema extends ValueTypeSchema {
     }
 
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.BOOLEAN;
+    public JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.BOOLEAN);
     }
 
     @Override
