@@ -28,12 +28,13 @@ public class TestCyclic extends SchemaTestBase {
         public OuterLoop outer;
     }
 
-    private final ObjectMapper MAPPER = objectMapper();
+    private final ObjectMapper MAPPER = new ObjectMapper();
+
+    private final JsonSchemaGenerator GENERATOR = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
 
     // [Issue#4]
     public void testSimpleCyclic() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema schema = generator.generateSchema(Loop.class);
+        JsonSchema schema = GENERATOR.generateSchema(Loop.class);
 
         String json = MAPPER.writeValueAsString(schema);
         String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:Loop\",\"type\":\"object\",\"properties\":{\"next\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:Loop\"},\"name\":{\"type\":\"string\"}}}";
@@ -42,8 +43,7 @@ public class TestCyclic extends SchemaTestBase {
     }
 
     public void testListCyclic() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema schema = generator.generateSchema(ListLoop.class);
+        JsonSchema schema = GENERATOR.generateSchema(ListLoop.class);
 
         String json = MAPPER.writeValueAsString(schema);
         String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:ListLoop\",\"type\":\"object\",\"properties\":{\"list\":{\"type\":\"array\",\"items\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:ListLoop\"}}}}";
@@ -52,8 +52,7 @@ public class TestCyclic extends SchemaTestBase {
     }
 
     public void testMapCyclic() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema schema = generator.generateSchema(MapLoop.class);
+        JsonSchema schema = GENERATOR.generateSchema(MapLoop.class);
 
         String json = MAPPER.writeValueAsString(schema);
         String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:MapLoop\",\"type\":\"object\",\"properties\":{\"map\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:MapLoop\"}}}}";
@@ -62,8 +61,7 @@ public class TestCyclic extends SchemaTestBase {
     }
 
     public void testInnerOuterCyclic() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema schema = generator.generateSchema(OuterLoop.class);
+        JsonSchema schema = GENERATOR.generateSchema(OuterLoop.class);
 
         String json = MAPPER.writeValueAsString(schema);
         String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:OuterLoop\",\"type\":\"object\",\"properties\":{\"inner\":{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:InnerLoop\",\"type\":\"object\",\"properties\":{\"outer\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:OuterLoop\"}}}}}";

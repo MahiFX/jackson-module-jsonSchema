@@ -2,12 +2,12 @@ package com.fasterxml.jackson.module.jsonSchemaV4.customProperties;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.annotation.JsonHyperSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.annotation.Link;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ArrayVisitor;
@@ -28,21 +28,26 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     private boolean ignoreDefaults = true;
 
-    private static class HyperSchemaFactoryWrapperFactory extends WrapperFactory {
-        @Override
-        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p) {
-            SchemaFactoryWrapper wrapper = new HyperSchemaFactoryWrapper(mapper);
-            wrapper.setProvider(p);
-            return wrapper;
+    private HyperSchemaFactoryWrapper(){
+
+    }
+    public static class HyperSchemaFactoryWrapperFactory extends WrapperFactory {
+        private boolean ignoreDefaults = true;
+
+        public HyperSchemaFactoryWrapperFactory(boolean ignoreDefaults){
+            this.ignoreDefaults=ignoreDefaults;
         }
 
-        ;
-    }
-
-    ;
-
-    public HyperSchemaFactoryWrapper(ObjectMapper mapper) {
-        super(mapper, new HyperSchemaFactoryWrapperFactory());
+        public HyperSchemaFactoryWrapperFactory(){
+            this(false);
+        }
+        @Override
+        public SchemaFactoryWrapper getWrapper(SerializerProvider provider) {
+            HyperSchemaFactoryWrapper wrapper = new HyperSchemaFactoryWrapper();
+            wrapper.setProvider(provider);
+            wrapper.setIgnoreDefaults(ignoreDefaults);
+            return wrapper;
+        }
     }
 
     @Override
@@ -105,19 +110,18 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
     }
 
     private JsonSchema fetchSchema(Class<?> targetSchema) {
-        if (provider instanceof DefaultSerializerProvider && targetSchema != void.class) {
-            JavaType targetType = provider.constructType(targetSchema);
+        if (getProvider() instanceof DefaultSerializerProvider && targetSchema != void.class) {
+            JavaType targetType = getProvider().constructType(targetSchema);
             try {
-                if (visitorContext != null) {
-                    String seenSchemaUri = visitorContext.getSeenSchemaUri(targetType);
-                    if (seenSchemaUri != null) {
-                        return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(targetType));
-                    }
+                String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(targetType);
+                if (seenSchemaUri != null) {
+                    return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(targetType));
                 }
-                HyperSchemaFactoryWrapper targetVisitor = new HyperSchemaFactoryWrapper(originalMapper);
-                targetVisitor.setVisitorContext(visitorContext);
 
-                ((DefaultSerializerProvider) provider).acceptJsonFormatVisitor(targetType, targetVisitor);
+                HyperSchemaFactoryWrapper targetVisitor = new HyperSchemaFactoryWrapper();
+
+
+                ((DefaultSerializerProvider) getProvider()).acceptJsonFormatVisitor(targetType, targetVisitor);
                 return targetVisitor.finalSchema();
             } catch (JsonMappingException e) {
                 throw new RuntimeException(e);

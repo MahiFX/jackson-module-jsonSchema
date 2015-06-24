@@ -3,14 +3,12 @@ package com.fasterxml.jackson.module.jsonSchemaV4.customProperties;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ObjectVisitorDecorator;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
@@ -27,28 +25,26 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
     private ValidationConstraintResolver constraintResolver;
 
     public static class ValidationSchemaFactoryWrapperFactory extends WrapperFactory {
-        @Override
-        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p) {
-            SchemaFactoryWrapper wrapper = new ValidationSchemaFactoryWrapper(mapper);
-            wrapper.setProvider(p);
-            return wrapper;
+        private ValidationConstraintResolver constraintResolver;
+
+        public ValidationSchemaFactoryWrapperFactory(ValidationConstraintResolver constraintResolver){
+            this.constraintResolver=constraintResolver;
         }
 
+        public ValidationSchemaFactoryWrapperFactory(){
+            this(new AnnotationConstraintResolver());
+        }
         @Override
-        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p, VisitorContext rvc) {
-            SchemaFactoryWrapper wrapper = new ValidationSchemaFactoryWrapper(mapper);
-            wrapper.setProvider(p);
-            wrapper.setVisitorContext(rvc);
-            return wrapper;
+        public SchemaFactoryWrapper getWrapper(SerializerProvider provider) {
+            ValidationSchemaFactoryWrapper schemaFactoryWrapper =new ValidationSchemaFactoryWrapper(constraintResolver);
+            schemaFactoryWrapper.setProvider(provider);
+            return  schemaFactoryWrapper;
+
         }
     }
 
-    public ValidationSchemaFactoryWrapper(ObjectMapper mapper) {
-        this(mapper, new AnnotationConstraintResolver());
-    }
 
-    public ValidationSchemaFactoryWrapper(ObjectMapper mapper, ValidationConstraintResolver constraintResolver) {
-        super(mapper, new ValidationSchemaFactoryWrapperFactory());
+    private  ValidationSchemaFactoryWrapper(ValidationConstraintResolver constraintResolver) {
         this.constraintResolver = constraintResolver;
     }
 

@@ -31,7 +31,7 @@ public class TestUnwrapping extends SchemaTestBase {
     private final ObjectMapper MAPPER = objectMapper();
 
     public void testUnwrapping() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
         JsonSchema schema = generator.generateSchema(UnwrappingRoot.class);
 
         String json = MAPPER.writeValueAsString(schema).replace('"', '\'');

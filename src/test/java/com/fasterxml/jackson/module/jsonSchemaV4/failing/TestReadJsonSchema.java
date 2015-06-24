@@ -3,6 +3,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4.failing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchemaGenerator;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaTestBase;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import org.junit.Ignore;
@@ -47,9 +48,9 @@ public class TestReadJsonSchema
     }
 
     public void _testSimple(Class<?> type) throws Exception {
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
-        MAPPER.acceptJsonFormatVisitor(MAPPER.constructType(type), visitor);
-        JsonSchema jsonSchema = visitor.finalSchema();
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
+        JsonSchema jsonSchema =generator.generateSchema(MAPPER.constructType(type));
+
         assertNotNull(jsonSchema);
 
         String schemaStr = MAPPER.writeValueAsString(jsonSchema);

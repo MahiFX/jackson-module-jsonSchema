@@ -117,12 +117,13 @@ public class TestGenerateJsonSchema
 
     private final ObjectMapper MAPPER = new ObjectMapper();
 
+    private final JsonSchemaGenerator GENERATOR = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
+
     /**
      * Test simple generation
      */
     public void testGeneratingJsonSchema() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema jsonSchema = generator.generateSchema(SimpleBean.class);
+        JsonSchema jsonSchema = GENERATOR.generateSchema(SimpleBean.class);
 
         assertNotNull(jsonSchema);
 
@@ -181,7 +182,7 @@ public class TestGenerateJsonSchema
     public void testGeneratingJsonSchemaWithFilters() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
         mapper.setFilters(secretFilterProvider);
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(mapper);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
         JsonSchema jsonSchema = generator.generateSchema(FilteredBean.class);
         assertNotNull(jsonSchema);
         assertTrue(jsonSchema.isObjectSchema());
@@ -200,8 +201,7 @@ public class TestGenerateJsonSchema
      * properly serialized
      */
     public void testSchemaSerialization() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema jsonSchema = generator.generateSchema(SimpleBean.class);
+        JsonSchema jsonSchema = GENERATOR.generateSchema(SimpleBean.class);
         Map<String, Object> result = writeAndMap(MAPPER, jsonSchema);
         assertNotNull(result);
         // no need to check out full structure, just basics...
@@ -215,8 +215,7 @@ public class TestGenerateJsonSchema
      * Test for [JACKSON-454]
      */
     public void testThatObjectsHaveNoItems() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema jsonSchema = generator.generateSchema(TrivialBean.class);
+        JsonSchema jsonSchema = GENERATOR.generateSchema(TrivialBean.class);
         Map<String, Object> result = writeAndMap(MAPPER, jsonSchema);
         // can we count on ordering being stable? I think this is true with current ObjectNode impl
         // as perh [JACKSON-563]; 'required' is only included if true
@@ -225,8 +224,7 @@ public class TestGenerateJsonSchema
 
     @SuppressWarnings({"unchecked", "rawtypes" })
     public void testSchemaId() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema jsonSchema = generator.generateSchema(BeanWithId.class);
+        JsonSchema jsonSchema = GENERATOR.generateSchema(BeanWithId.class);
         Map<String, Object> result = writeAndMap(MAPPER, jsonSchema);
 
         assertEquals(new HashMap() {
@@ -249,8 +247,7 @@ public class TestGenerateJsonSchema
     }
 
     public void testSimpleMap() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
-        JsonSchema jsonSchema = generator.generateSchema(StringMap.class);
+        JsonSchema jsonSchema = GENERATOR.generateSchema(StringMap.class);
         Map<String, Object> result = writeAndMap(MAPPER, jsonSchema);
         assertNotNull(result);
 
@@ -266,8 +263,7 @@ public class TestGenerateJsonSchema
     public void testInvalidCall() throws Exception {
         // not ok to pass null
         try {
-            SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
-            MAPPER.acceptJsonFormatVisitor((JavaType) null, visitor);
+            GENERATOR.generateSchema(null);
             fail("Should have failed");
         } catch (IllegalArgumentException iae) {
             verifyException(iae, "type must be provided");

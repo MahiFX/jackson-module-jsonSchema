@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
+import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.PolymorphicJsonFormatVisitorWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.PolymorphicObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
@@ -25,11 +26,9 @@ import java.util.Set;
  */
 public class PolymorphicObjectSerializer extends SimpleSerializers {
 
-    private Set<JavaType> visitedTypes = new HashSet<JavaType>();
-
     public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type, BeanDescription beanDesc) {
         Collection<NamedType> subTypes = PolymorphicHandlingUtil.extractSubTypes(beanDesc.getBeanClass(), config);
-        if (subTypes.size() > 1 && visitedTypes.add(type)) {//subtype is inclusive with itself.
+        if (subTypes.size() > 1 && SchemaGenerationContext.get().addVisitedPolymorphicType(type)) {//subtype is inclusive with itself.
             return new PolyMorphicBeanSerializer();
         }
 

@@ -19,7 +19,7 @@ public class TestTypeGeneration extends SchemaTestBase {
 
     // [Issue#14]: multiple type attributes
     public void testCorrectType() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
         JsonSchema jsonSchema = generator.generateSchema(Issue14Bean.class);
         String json = MAPPER.writeValueAsString(jsonSchema).replace('"', '\'');
         final String EXP = "{'id':'urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestTypeGeneration:Issue14Bean','type':'object','properties':{'date':{'type':'integer','format':'UTC_MILLISEC'}}}";

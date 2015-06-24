@@ -7,9 +7,9 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
@@ -27,17 +27,13 @@ import java.util.Map;
 public class PolymorphicHandlingUtil {
 
     public static final String POLYMORPHIC_TYPE_NAME_SUFFIX = "_1";
+    private final SerializerProvider provider;
+
     public interface PolymorphiSchemaDefinition {
         Map<String, JsonSchema> getDefinitions();
 
         ReferenceSchema[] getReferences();
     }
-
-    protected final VisitorContext visitorContext;
-
-    protected final SerializerProvider provider;
-
-    protected final ObjectMapper mapper;
 
     protected final VisitorUtils visitorUtils;
 
@@ -47,12 +43,11 @@ public class PolymorphicHandlingUtil {
 
     private Collection<NamedType> subTypes = Collections.emptyList();
 
-    public PolymorphicHandlingUtil(VisitorContext visitorContext, SerializerProvider provider, ObjectMapper mapper, JavaType originalType,WrapperFactory factory) {
-        this.visitorContext = visitorContext;
-        this.provider = provider;
-        this.mapper = mapper;
-        this.visitorUtils = new VisitorUtils(factory.getWrapper(mapper,provider,visitorContext), visitorContext, provider);
+    public PolymorphicHandlingUtil(JavaType originalType,SerializerProvider provider) {
+
+        this.visitorUtils = new VisitorUtils(provider);
         this.originalType = originalType;
+        this.provider=provider;
         processType(originalType);
     }
 
@@ -77,21 +72,25 @@ public class PolymorphicHandlingUtil {
 
     }
 
+    public SerializerProvider getProvider() {
+        return provider;
+    }
+
     private void processType(JavaType originalType) {
-        if (provider == null) {
+        if (getProvider() == null) {
             return;
         }
 
-        if (provider.getConfig() == null) {
+        if (getProvider().getConfig() == null) {
             return;
         }
-        beanDescription = provider.getConfig().introspectClassAnnotations(originalType);
+        beanDescription = getProvider().getConfig().introspectClassAnnotations(originalType);
 
         if (beanDescription == null) {
             return;
         }
 
-        Collection<NamedType> namedTypes = extractSubTypes(beanDescription.getBeanClass(), provider.getConfig());
+        Collection<NamedType> namedTypes = extractSubTypes(beanDescription.getBeanClass(), getProvider().getConfig());
 
         if (!namedTypes.isEmpty()) {
             subTypes = namedTypes;
@@ -103,7 +102,7 @@ public class PolymorphicHandlingUtil {
         if (!isPolymorphic()) {
             throw new IllegalArgumentException("Argument is not a polymorphic object (no JsonSubtype annotation (" + originalType.getRawClass().getSimpleName() + ")");
         }
-        visitorContext.addSeenSchemaUriForPolymorphic(originalType);
+        SchemaGenerationContext.get().addSeenSchemaUriForPolymorphic(originalType);
         final ReferenceSchema[] references = new ReferenceSchema[subTypes.size()];
         JsonSchema[] subSchemas = new JsonSchema[subTypes.size()];
         final Map<String, JsonSchema> definitions = new HashMap<String, JsonSchema>();
@@ -115,7 +114,7 @@ public class PolymorphicHandlingUtil {
                 throw new IllegalArgumentException("No name associated with class " + namedType.getType().getSimpleName() + " try using @JsonTypeName annotation");
             }
             String subSchemaDefinitionName =getDefinitionReference(namedType);
-            JsonSchema subSchema = visitorUtils.schema(namedType.getType(), mapper);
+            JsonSchema subSchema = visitorUtils.schema(namedType.getType());
             String subTypeName =namedType.getName();
 
             if(namedType.getType() == originalType.getRawClass()){
@@ -144,7 +143,7 @@ public class PolymorphicHandlingUtil {
     }
 
     public boolean isPolymorphic() {
-        return !visitorContext.visitedPolymorphicType(originalType) && subTypes.size() > 1;
+        return !SchemaGenerationContext.get().visitedPolymorphicType(originalType) && subTypes.size() > 1;
     }
 
     protected String getDefinitionReference(NamedType namedType) {

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
@@ -16,24 +17,12 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
  * to handle it here, produce JSON Schema Object type.
  */
 public class MapVisitor extends JsonMapFormatVisitor.Base
-        implements JsonSchemaProducer, Visitor {
+        implements JsonSchemaProducer {
     protected final ObjectSchema schema;
 
-    protected SerializerProvider provider;
 
-    private WrapperFactory wrapperFactory;
-
-    private VisitorContext visitorContext;
-    private ObjectMapper originalMapper;
-
-    public MapVisitor(SerializerProvider provider, ObjectSchema schema) {
-        this(provider, schema, new WrapperFactory());
-    }
-
-    public MapVisitor(SerializerProvider provider, ObjectSchema schema, WrapperFactory wrapperFactory) {
-        this.provider = provider;
+    public MapVisitor(ObjectSchema schema) {
         this.schema = schema;
-        this.wrapperFactory = wrapperFactory;
     }
 
     /*
@@ -53,15 +42,6 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
     /*********************************************************************
      */
 
-    @Override
-    public SerializerProvider getProvider() {
-        return provider;
-    }
-
-    @Override
-    public void setProvider(SerializerProvider p) {
-        provider = p;
-    }
 
     @Override
     public void keyFormat(JsonFormatVisitable handler, JavaType keyType)
@@ -84,25 +64,13 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
             throws JsonMappingException {
 
         // check if we've seen this sub-schema already and return a reference-schema if we have
-        if (visitorContext != null) {
-            String seenSchemaUri = visitorContext.getSeenSchemaUri(propertyTypeHint);
-            if (seenSchemaUri != null) {
-                return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(propertyTypeHint));
-            }
+        String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(propertyTypeHint);
+        if (seenSchemaUri != null) {
+            return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(propertyTypeHint));
         }
 
-        SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
+        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
         handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
         return visitor.finalSchema();
-    }
-
-    @Override
-    public Visitor setVisitorContext(VisitorContext rvc) {
-        visitorContext = rvc;
-        return this;
-    }
-
-    public void setOriginalMapper(ObjectMapper originalMapper) {
-        this.originalMapper = originalMapper;
     }
 }
