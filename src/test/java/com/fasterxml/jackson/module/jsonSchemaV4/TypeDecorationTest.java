@@ -80,10 +80,8 @@ public class TypeDecorationTest {
         typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
         mapper.setDefaultTyping(typer);
 
-
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(TypeParameterAsProperty.class, wrapper);
-        JsonSchema schema = wrapper.finalSchema();
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema =generator.generateSchema(TypeParameterAsProperty.class);
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
         Set<String> required = schema.asObjectSchema().getRequired();
         Assert.assertTrue("type info should be required", required != null && required.contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
@@ -100,10 +98,9 @@ public class TypeDecorationTest {
         typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
         mapper.setDefaultTyping(typer);
 
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema =generator.generateSchema(TypeParameterAsClassProperty.class);
 
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(TypeParameterAsClassProperty.class, wrapper);
-        JsonSchema schema = wrapper.finalSchema();
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
         Set<String> required = schema.asObjectSchema().getRequired();
         Assert.assertTrue("type info should be required", required != null && required.contains(JsonTypeInfo.Id.CLASS.getDefaultPropertyName()));
@@ -122,9 +119,9 @@ public class TypeDecorationTest {
 
         mapper.addMixIn(MixInTest.class, MixIn.class);
 
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(MixInTest.class, wrapper);
-        JsonSchema schema = wrapper.finalSchema();
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema =generator.generateSchema(MixInTest.class);
+
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
         Set<String> required = schema.asObjectSchema().getRequired();
         Assert.assertTrue("type info should be required", required != null && required.contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
@@ -135,15 +132,14 @@ public class TypeDecorationTest {
     @Test
     public void forPolyMorphicObjects() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
         TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
         typer = typer.init(JsonTypeInfo.Id.NAME, null);
         typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
         mapper.setDefaultTyping(typer);
 
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(JSONSubTypeBaseClass.class, wrapper);
-        JsonSchema schema = wrapper.finalSchema();
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema =generator.generateSchema(JSONSubTypeBaseClass.class);
+
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
         Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX));
         JsonSchema companySchema =schema.getDefinitions().get("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX);
@@ -154,16 +150,16 @@ public class TypeDecorationTest {
     @Test
     public void forPolyMorphicObjectsArryas() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
         TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
         typer = typer.init(JsonTypeInfo.Id.NAME, null);
         typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
         mapper.setDefaultTyping(typer);
 
         mapper.addMixIn(JSONSubTypeBaseClass[].class, JSONSubTypeBaseClassArrayMixIn.class);
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(JSONSubTypeBaseClass[].class, wrapper);
-        JsonSchema schema = wrapper.finalSchema();
+
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema =generator.generateSchema(JSONSubTypeBaseClass[].class);
+
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
         JsonSchema[] arrayItems = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas();
         Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
@@ -177,14 +173,14 @@ public class TypeDecorationTest {
     @Test
     public void objectDoesntHaveTypeRestriction() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
         TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
         typer = typer.init(JsonTypeInfo.Id.NAME, null);
         typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
         mapper.setDefaultTyping(typer);
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(Object.class, wrapper);
-        JsonSchema schema = wrapper.finalSchema();
+
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema =generator.generateSchema(Object.class);
+
         String json =toJson(schema, schema.getClass(), new ObjectMapper());
         Assert.assertEquals("{\"type\":[\"string\",\"number\",\"integer\",\"boolean\",\"object\",\"array\",\"null\"]}",json);
     }
@@ -209,15 +205,14 @@ public class TypeDecorationTest {
     @Test
     public void testWrapperObjectDecoration()throws Exception{
         ObjectMapper mapper = new ObjectMapper();
-        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
         TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
         typer = typer.init(JsonTypeInfo.Id.NAME, null);
         typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
         mapper.setDefaultTyping(typer);
 
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(ClassAsWrapperObject.class, wrapper);
-        JsonSchema schema = wrapper.finalSchema();
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema =generator.generateSchema(ClassAsWrapperObject.class);
+
         String json =toJson(schema, schema.getClass(), new ObjectMapper());
         Assert.assertEquals("{\"type\":\"object\",\"properties\":{\"ClassAsWrapperObject\":{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TypeDecorationTest:ClassAsWrapperObject\",\"type\":\"object\",\"properties\":{\"someProperty\":{\"type\":\"string\"}}}},\"required\":[\"ClassAsWrapperObject\"]}",json);
 

@@ -25,17 +25,13 @@ public class HyperSchemaFactoryWrapperTest extends SchemaTestBase {
     }
 
     public void testSimpleHyperWithDefaultSchema() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        HyperSchemaFactoryWrapper personVisitor = new HyperSchemaFactoryWrapper(mapper);
-        personVisitor.setIgnoreDefaults(false);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withWrapperFactory(new HyperSchemaFactoryWrapper.HyperSchemaFactoryWrapperFactory(false)).build();
 
+        JsonSchema personSchema = generator.generateSchema(Person.class);
 
-        mapper.acceptJsonFormatVisitor(Person.class, personVisitor);
-        JsonSchema personSchema = personVisitor.finalSchema();
+        generator = new JsonSchemaGenerator.Builder().withWrapperFactory(new HyperSchemaFactoryWrapper.HyperSchemaFactoryWrapperFactory()).build();
 
-        HyperSchemaFactoryWrapper petVisitor = new HyperSchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(Pet.class, petVisitor);
-        JsonSchema petSchema = petVisitor.finalSchema();
+        JsonSchema petSchema = generator.generateSchema(Pet.class);
 
         assertTrue("schema should be an objectSchema.", personSchema.isObjectSchema());
         LinkDescriptionObject[] links = personSchema.asObjectSchema().getLinks();
@@ -58,14 +54,13 @@ public class HyperSchemaFactoryWrapperTest extends SchemaTestBase {
     public void testSimpleHyperWithoutDefaultSchema() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        HyperSchemaFactoryWrapper personVisitor = new HyperSchemaFactoryWrapper(mapper);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder()
+                    .withWrapperFactory(new HyperSchemaFactoryWrapper.HyperSchemaFactoryWrapperFactory())
+                    .withObjectMapper(mapper).build();
 
-        mapper.acceptJsonFormatVisitor(Person.class, personVisitor);
-        JsonSchema personSchema = personVisitor.finalSchema();
+        JsonSchema personSchema = generator.generateSchema(Person.class);
 
-        HyperSchemaFactoryWrapper petVisitor = new HyperSchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(Pet.class, petVisitor);
-        JsonSchema petSchema = petVisitor.finalSchema();
+        JsonSchema petSchema =generator.generateSchema(Pet.class);
 
         assertTrue("schema should be an objectSchema.", personSchema.isObjectSchema());
         LinkDescriptionObject[] links = personSchema.asObjectSchema().getLinks();

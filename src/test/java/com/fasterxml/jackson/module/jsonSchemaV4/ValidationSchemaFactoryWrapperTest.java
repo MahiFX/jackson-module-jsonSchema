@@ -281,12 +281,9 @@ public class ValidationSchemaFactoryWrapperTest extends SchemaTestBase {
      * Test set validation constraints
      */
     public void testAddingValidationConstraints() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        ValidationSchemaFactoryWrapper visitor = new ValidationSchemaFactoryWrapper(mapper);
+       JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withWrapperFactory(new ValidationSchemaFactoryWrapper.ValidationSchemaFactoryWrapperFactory()).build();
 
-
-        mapper.acceptJsonFormatVisitor(ValidationBean.class, visitor);
-        JsonSchema jsonSchema = visitor.finalSchema();
+        JsonSchema jsonSchema = generator.generateSchema(ValidationBean.class);
 
         assertNotNull("schema should not be null.", jsonSchema);
         assertTrue("schema should be an objectSchema.", jsonSchema.isObjectSchema());

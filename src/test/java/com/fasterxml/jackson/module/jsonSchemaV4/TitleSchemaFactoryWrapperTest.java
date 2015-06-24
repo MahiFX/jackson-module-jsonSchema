@@ -17,12 +17,9 @@ public class TitleSchemaFactoryWrapperTest extends TestCase {
     }
 
     public void testAddingTitle() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TitleSchemaFactoryWrapper visitor = new TitleSchemaFactoryWrapper(mapper);
+        JsonSchemaGenerator schemaGenerator= new JsonSchemaGenerator.Builder().withWrapperFactory(new TitleSchemaFactoryWrapper.TitleSchemaFactoryWrapperFactory()).build();
 
-
-        mapper.acceptJsonFormatVisitor(Person.class, visitor);
-        JsonSchema schema = visitor.finalSchema();
+        JsonSchema schema =schemaGenerator.generateSchema(Person.class);
 
         assertTrue("schema should be an objectSchema.", schema.isObjectSchema());
         String title = schema.asObjectSchema().getTitle();

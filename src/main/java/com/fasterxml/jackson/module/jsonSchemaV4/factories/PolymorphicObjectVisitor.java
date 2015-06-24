@@ -21,37 +21,14 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
 
     private PolymorphicObjectSchema schema;
 
-    private VisitorContext visitorContext;
-
     private JavaType originalType;
 
-    protected SerializerProvider provider;
+    private SerializerProvider provider;
 
-    private ObjectMapper originalMapper;
-
-    private WrapperFactory wrapperFactory;
-
-    public PolymorphicObjectVisitor(SerializerProvider provider, PolymorphicObjectSchema schema, JavaType type,WrapperFactory wrapperFactory) {
+    public PolymorphicObjectVisitor(PolymorphicObjectSchema schema, JavaType type,SerializerProvider provider) {
         this.schema = schema;
         this.originalType = type;
-        this.provider = provider;
-        this.wrapperFactory=wrapperFactory;
-    }
-
-    public void setProvider(SerializerProvider provider) {
-        this.provider = provider;
-    }
-
-    public SerializerProvider getProvider() {
-        return provider;
-    }
-
-    public void setVisitorContext(VisitorContext visitorContext) {
-        this.visitorContext = visitorContext;
-    }
-
-    public VisitorContext getVisitorContext() {
-        return visitorContext;
+        this.provider=provider;
     }
 
     @Override
@@ -60,7 +37,7 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
     }
 
     public void visitPolymorphicObject(JavaType type) {
-        PolymorphicHandlingUtil handlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, type,wrapperFactory);
+        PolymorphicHandlingUtil handlingUtil = new PolymorphicHandlingUtil(type,this.provider);
         if (handlingUtil.isPolymorphic()) {
             PolymorphicHandlingUtil.PolymorphiSchemaDefinition schemaDefs = handlingUtil.extractPolymophicTypes();
             schema.setAnyOf(schemaDefs.getReferences());
@@ -78,12 +55,7 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
                 }
             }
             schema.setTypes(types.toArray(new JsonFormatTypes[0]));
-
         }
 
-    }
-
-    public void setOriginalMapper(ObjectMapper originalMapper) {
-        this.originalMapper = originalMapper;
     }
 }

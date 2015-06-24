@@ -1,7 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.customProperties;
 
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
@@ -9,7 +8,6 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ArrayVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 
 /**
@@ -19,35 +17,19 @@ import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
  * @author jphelan
  */
 public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
-    private static class TitleSchemaFactoryWrapperFactory extends WrapperFactory {
+    public static class TitleSchemaFactoryWrapperFactory extends WrapperFactory {
         @Override
-        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p) {
-            SchemaFactoryWrapper wrapper = new TitleSchemaFactoryWrapper(mapper);
-            if (p != null) {
-                wrapper.setProvider(p);
-            }
+        public SchemaFactoryWrapper getWrapper(SerializerProvider provider) {
+            TitleSchemaFactoryWrapper wrapper = new TitleSchemaFactoryWrapper();
+            wrapper.setProvider(provider);
             return wrapper;
         }
 
-        ;
-
-        @Override
-        public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p, VisitorContext rvc) {
-            SchemaFactoryWrapper wrapper = new TitleSchemaFactoryWrapper(mapper);
-            if (p != null) {
-                wrapper.setProvider(p);
-            }
-            wrapper.setVisitorContext(rvc);
-            return wrapper;
-        }
     }
 
     ;
 
-    public TitleSchemaFactoryWrapper(ObjectMapper mapper) {
-        super(mapper, new TitleSchemaFactoryWrapperFactory());
-    }
-
+    private TitleSchemaFactoryWrapper(){}
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
         ObjectVisitor visitor = ((ObjectVisitor) super.expectObjectFormat(convertedType));

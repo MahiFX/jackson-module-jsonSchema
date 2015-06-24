@@ -26,7 +26,7 @@ public class TestJDKTypes extends SchemaTestBase {
      * Test simple generation for simple/primitive numeric types
      */
     public void testSimpleNumbers() throws Exception {
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(MAPPER);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
         JsonSchema schema;
 
         schema = generator.generateSchema(Long.class);

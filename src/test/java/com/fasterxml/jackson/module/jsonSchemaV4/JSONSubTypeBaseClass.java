@@ -54,6 +54,7 @@ class Company extends JSONSubTypeBaseClass {
     public Company() {
     }
 
+    Company company;
     public Company(String name) {
         this.nameCompany = name;
     }

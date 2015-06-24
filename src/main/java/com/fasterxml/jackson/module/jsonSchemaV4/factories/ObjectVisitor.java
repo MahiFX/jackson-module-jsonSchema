@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
@@ -19,30 +20,15 @@ import java.util.HashMap;
 
 
 public class ObjectVisitor extends JsonObjectFormatVisitor.Base
-        implements JsonSchemaProducer, Visitor {
+        implements JsonSchemaProducer {
     protected final ObjectSchema schema;
     private final JavaType originalType;
-    protected SerializerProvider provider;
-    protected VisitorContext visitorContext;
-    private WrapperFactory wrapperFactory;
 
-    private ObjectMapper originalMapper;
 
-    /**
-     * @deprecated Since 2.4; call constructor that takes {@link WrapperFactory}
-     */
-    @Deprecated
-    public ObjectVisitor(SerializerProvider provider, ObjectSchema schema) {
-        this(provider, schema, new WrapperFactory(), null);
-    }
-
-    public ObjectVisitor(SerializerProvider provider, ObjectSchema schema, WrapperFactory wrapperFactory, JavaType originalType) {
-        this.provider = provider;
+    public ObjectVisitor(ObjectSchema schema,JavaType originalType) {
         this.schema = schema;
-        this.wrapperFactory = wrapperFactory;
         this.originalType = originalType;
     }
-
 
     /*
     /*********************************************************************
@@ -60,32 +46,6 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
     /* JsonObjectFormatVisitor impl
     /*********************************************************************
      */
-
-    @Override
-    public SerializerProvider getProvider() {
-        return provider;
-    }
-
-    /**
-     * @deprecated Construct instances with provider instead
-     */
-    @Deprecated
-    @Override
-    public void setProvider(SerializerProvider p) {
-        provider = p;
-    }
-
-    public WrapperFactory getWrapperFactory() {
-        return wrapperFactory;
-    }
-
-    /**
-     * @deprecated Construct instances with provider instead
-     */
-    @Deprecated
-    public void setWrapperFactory(WrapperFactory wrapperFactory) {
-        this.wrapperFactory = wrapperFactory;
-    }
 
     @Override
     public void optionalProperty(BeanProperty prop) throws JsonMappingException {
@@ -116,12 +76,12 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         }
 
         // check if we've seen this argument's sub-schema already and return a reference-schema if we have
-        String seenSchemaUri = visitorContext.getSeenSchemaUri(prop.getType());
+        String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(prop.getType());
         if (seenSchemaUri != null) {
-            return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(prop.getType()));
+            return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(prop.getType()));
         }
 
-        SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
+        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
         JsonSerializer<Object> ser = getSer(prop);
         if (ser != null) {
             JavaType type = prop.getType();
@@ -137,14 +97,13 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
     protected JsonSchema propertySchema(JsonFormatVisitable handler, JavaType propertyTypeHint)
             throws JsonMappingException {
         // check if we've seen this argument's sub-schema already and return a reference-schema if we have
-        if (visitorContext != null) {
-            String seenSchemaUri = visitorContext.getSeenSchemaUri(propertyTypeHint);
-            if (seenSchemaUri != null) {
-                return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(propertyTypeHint));
-            }
+        String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(propertyTypeHint);
+        if (seenSchemaUri != null) {
+            return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(propertyTypeHint));
         }
-        //TODO, do we need this here?(wouldn't the schema visiotr create a polymorphic object for us anyway?
-        PolymorphicHandlingUtil polymorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, propertyTypeHint,wrapperFactory);
+
+        // do we need this here?(wouldn't the schema visiotr create a polymorphic object for us anyway?
+        PolymorphicHandlingUtil polymorphicHandlingUtil = new PolymorphicHandlingUtil(propertyTypeHint,getProvider());
         if (polymorphicHandlingUtil.isPolymorphic()) {
             PolymorphicHandlingUtil.PolymorphiSchemaDefinition polymorphiSchemaDefinition = polymorphicHandlingUtil.extractPolymophicTypes();
             if (schema.getDefinitions() == null) {
@@ -153,7 +112,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
             schema.getDefinitions().putAll(polymorphiSchemaDefinition.getDefinitions());
             return new AnyOfSchema(polymorphiSchemaDefinition.getReferences());
         } else {
-            SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
+            SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
             handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
             return visitor.finalSchema();
         }
@@ -172,13 +131,4 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         return ser;
     }
 
-    @Override
-    public Visitor setVisitorContext(VisitorContext rvc) {
-        visitorContext = rvc;
-        return this;
-    }
-
-    public void setOriginalMapper(ObjectMapper originalMapper) {
-        this.originalMapper = originalMapper;
-    }
 }

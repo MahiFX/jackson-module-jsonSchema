@@ -43,7 +43,7 @@ public class EnumGenerationTest extends SchemaTestBase {
      */
 
     private final ObjectMapper MAPPER = new ObjectMapper();
-    JsonSchemaGenerator SCHEMA_GEN = new JsonSchemaGenerator(MAPPER);
+    private final JsonSchemaGenerator SCHEMA_GEN = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
 
     public void testEnumDefault() throws Exception {
         JsonSchema jsonSchema = SCHEMA_GEN.generateSchema(LetterBean.class);
@@ -57,9 +57,8 @@ public class EnumGenerationTest extends SchemaTestBase {
     public void testEnumWithToString() throws Exception {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-
-        JsonSchemaGenerator generator = new JsonSchemaGenerator(mapper);
-        JsonSchema jsonSchema = generator.generateSchema(LetterBean.class);
+        JsonSchemaGenerator schemaGenerator  =new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema jsonSchema = schemaGenerator.generateSchema(LetterBean.class);
         @SuppressWarnings("unchecked")
         Map<String, Object> result = (Map<String, Object>) mapper.convertValue(jsonSchema, Map.class);
         assertNotNull(result);

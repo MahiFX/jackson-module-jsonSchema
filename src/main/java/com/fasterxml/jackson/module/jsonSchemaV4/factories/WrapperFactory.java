@@ -10,13 +10,10 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  * @author jphelan
  */
 public class WrapperFactory {
-    public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider provider) {
-        return new SchemaFactoryWrapper(mapper, provider);
+    public SchemaFactoryWrapper getWrapper(SerializerProvider provider) {
+        SchemaFactoryWrapper schemaFactoryWrapper = new SchemaFactoryWrapper();
+        schemaFactoryWrapper.setProvider(provider);
+        return schemaFactoryWrapper;
     }
 
-    public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider provider, VisitorContext rvc) {
-        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper, provider);
-        wrapper.setVisitorContext(rvc);
-        return wrapper;
-    }
 }

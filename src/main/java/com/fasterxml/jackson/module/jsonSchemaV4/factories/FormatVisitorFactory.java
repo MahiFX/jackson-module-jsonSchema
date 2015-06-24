@@ -26,16 +26,6 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
  */
 public class FormatVisitorFactory {
 
-    private final WrapperFactory wrapperFactory;
-
-    public FormatVisitorFactory() {
-        this(new WrapperFactory());
-    }
-
-    public FormatVisitorFactory(WrapperFactory wrapperFactory) {
-        this.wrapperFactory = wrapperFactory;
-    }
-
 	/*
     /**********************************************************
     /* Factory methods for visitors, structured types
@@ -68,31 +58,21 @@ public class FormatVisitorFactory {
     }
 
 */
-    public JsonArrayFormatVisitor arrayFormatVisitor(SerializerProvider provider,
-                                                     ArraySchema arraySchema, VisitorContext visitorContext, JavaType convertedType, ObjectMapper originalMapper) {
-
-        ArrayVisitor visitor = new ArrayVisitor(provider, arraySchema, wrapperFactory, convertedType);
-        visitor.setVisitorContext(visitorContext);
-        visitor.setOriginalMapper(originalMapper);
+    public JsonArrayFormatVisitor arrayFormatVisitor(ArraySchema arraySchema,JavaType convertedType) {
+        ArrayVisitor visitor = new ArrayVisitor(arraySchema,convertedType);
         return visitor;
     }
 
 
 
 
-    protected JsonMapFormatVisitor mapFormatVisitor(SerializerProvider provider,
-                                                    ObjectSchema objectSchema, VisitorContext rvc, ObjectMapper originalMapper) {
-        MapVisitor v = new MapVisitor(provider, objectSchema, wrapperFactory);
-        v.setVisitorContext(rvc);
-        v.setOriginalMapper(originalMapper);
+    protected JsonMapFormatVisitor mapFormatVisitor(ObjectSchema objectSchema) {
+        MapVisitor v = new MapVisitor(objectSchema);
         return v;
     }
 
-    protected JsonObjectFormatVisitor objectFormatVisitor(SerializerProvider provider,
-                                                          ObjectSchema objectSchema, VisitorContext rvc, JavaType convertedType, ObjectMapper originalMapper) {
-        ObjectVisitor v = new ObjectVisitor(provider, objectSchema, wrapperFactory, convertedType);
-        v.setVisitorContext(rvc);
-        v.setOriginalMapper(originalMapper);
+    protected JsonObjectFormatVisitor objectFormatVisitor(ObjectSchema objectSchema, JavaType convertedType) {
+        ObjectVisitor v = new ObjectVisitor(objectSchema,convertedType);
         return v;
     }
 
@@ -123,10 +103,8 @@ public class FormatVisitorFactory {
         return new StringVisitor(stringSchema);
     }
 
-    public PolymorphicObjectVisitor polymorphicObjectVisitor(SerializerProvider provider, PolymorphicObjectSchema s, VisitorContext visitorContext, JavaType type, ObjectMapper originalMapper) {
-        PolymorphicObjectVisitor polymorphicObjectVisitor = new PolymorphicObjectVisitor(provider, s, type,wrapperFactory);
-        polymorphicObjectVisitor.setVisitorContext(visitorContext);
-        polymorphicObjectVisitor.setOriginalMapper(originalMapper);
+    public PolymorphicObjectVisitor polymorphicObjectVisitor(PolymorphicObjectSchema s, JavaType type,SerializerProvider provider) {
+        PolymorphicObjectVisitor polymorphicObjectVisitor = new PolymorphicObjectVisitor(s, type,provider);
         return polymorphicObjectVisitor;
     }
 }

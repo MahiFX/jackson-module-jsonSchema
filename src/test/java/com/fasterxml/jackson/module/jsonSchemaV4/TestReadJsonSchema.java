@@ -67,6 +67,8 @@ public class TestReadJsonSchema
         MAPPER.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
     }
 
+    private JsonSchemaGenerator GENERATOR=new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
+
     /**
      * Verifies that a simple schema that is serialized can be deserialized back
      * to equal schema instance
@@ -92,9 +94,7 @@ public class TestReadJsonSchema
     }
 
     public void testAdditionalItems() throws Exception {
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
-        MAPPER.acceptJsonFormatVisitor(MAPPER.constructType(SchemableArrays.class), visitor);
-        JsonSchema jsonSchema = visitor.finalSchema();
+        JsonSchema jsonSchema = GENERATOR.generateSchema(MAPPER.constructType(SchemableArrays.class));
         assertNotNull(jsonSchema);
 
         assertTrue(jsonSchema.isObjectSchema());
@@ -107,9 +107,7 @@ public class TestReadJsonSchema
     }
 
     public void testArrayItems() throws Exception {
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
-        MAPPER.acceptJsonFormatVisitor(MAPPER.constructType(SchemableArrays.class), visitor);
-        JsonSchema jsonSchema = visitor.finalSchema();
+        JsonSchema jsonSchema = GENERATOR.generateSchema(MAPPER.constructType(SchemableArrays.class));
         assertNotNull(jsonSchema);
 
         assertTrue(jsonSchema.isObjectSchema());
@@ -126,9 +124,7 @@ public class TestReadJsonSchema
 
 
     public void _testSimple(Class<?> type) throws Exception {
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(MAPPER);
-        MAPPER.acceptJsonFormatVisitor(MAPPER.constructType(type), visitor);
-        JsonSchema jsonSchema = visitor.finalSchema();
+        JsonSchema jsonSchema =GENERATOR.generateSchema(MAPPER.constructType(type));
         assertNotNull(jsonSchema);
 
         _testSimple(type.getSimpleName(), jsonSchema);

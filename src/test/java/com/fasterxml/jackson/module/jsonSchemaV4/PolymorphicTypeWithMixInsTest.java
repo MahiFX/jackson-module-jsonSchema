@@ -28,7 +28,7 @@ public class PolymorphicTypeWithMixInsTest {
 
         mapper = new ObjectMapper();
         mapper.enableDefaultTyping();
-        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
+       // mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
         mapper.addMixIn(JSONSubTypeBaseClassWithMixIns.class, BaseMixIn.class);
         mapper.addMixIn(PersonMixIns.class, PersonMixIn.class);
         mapper.addMixIn(CompanyMixIns.class, CompanyMixIn.class);

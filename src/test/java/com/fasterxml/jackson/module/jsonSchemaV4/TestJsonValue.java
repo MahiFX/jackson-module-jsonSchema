@@ -35,15 +35,13 @@ public class TestJsonValue extends SchemaTestBase {
 
     public void testJsonValueAnnotation() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
 
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(mapper.constructType(Leaf.class), visitor);
-        JsonSchema schemaExp = visitor.finalSchema();
+        JsonSchema schemaExp = generator.generateSchema(Leaf.class);
         assertNotNull(schemaExp);
 
-        visitor = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(mapper.constructType(ContainerWithAsValue.class), visitor);
-        JsonSchema schemaAct = visitor.finalSchema();
+
+        JsonSchema schemaAct = generator.generateSchema(mapper.constructType(ContainerWithAsValue.class));
         assertNotNull(schemaAct);
 
         // these are minimal checks:
@@ -64,10 +62,9 @@ public class TestJsonValue extends SchemaTestBase {
     // For [Issue#34]
     public void testJsonValueForCollection() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
 
-        SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(mapper);
-        mapper.acceptJsonFormatVisitor(mapper.constructType(Issue34Bean.class), visitor);
-        JsonSchema schema = visitor.finalSchema();
+        JsonSchema schema =  generator.generateSchema(mapper.constructType(Issue34Bean.class));
         assertNotNull(schema);
 
         String schemaStr = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(schema);
