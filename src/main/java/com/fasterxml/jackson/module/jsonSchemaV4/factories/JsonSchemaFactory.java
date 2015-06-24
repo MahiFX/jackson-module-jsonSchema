@@ -43,4 +43,5 @@ public class JsonSchemaFactory {
         return new PolymorphicObjectSchema();
     }
 
+   // public NotSchema notSchema() { return new NotSchema(); }
 }

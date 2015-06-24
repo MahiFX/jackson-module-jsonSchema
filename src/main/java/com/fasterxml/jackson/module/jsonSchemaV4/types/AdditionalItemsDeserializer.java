@@ -2,6 +2,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4.types;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
@@ -19,6 +20,9 @@ import java.io.IOException;
 public class AdditionalItemsDeserializer extends JsonDeserializer<ArraySchema.AdditionalItems> {
     @Override
     public ArraySchema.AdditionalItems deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+        if(jp.getCurrentToken()== JsonToken.VALUE_STRING){
+            jp.nextToken();
+        }
         TreeNode node = jp.readValueAsTree();
 
         if (node instanceof ObjectNode) {

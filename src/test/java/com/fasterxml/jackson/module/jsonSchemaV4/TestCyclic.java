@@ -36,11 +36,7 @@ public class TestCyclic extends SchemaTestBase {
         JsonSchema schema = generator.generateSchema(Loop.class);
 
         String json = MAPPER.writeValueAsString(schema);
-        String EXP = "{\"type\":\"object\"," +
-                "\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:Loop\"," +
-                "\"properties\":{\"next\":{\"type\":\"object\"," +
-                "\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:Loop\"}" +
-                ",\"name\":{\"type\":\"string\"}}}";
+        String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:Loop\",\"type\":\"object\",\"properties\":{\"next\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:Loop\"},\"name\":{\"type\":\"string\"}}}";
 
         assertEquals(aposToQuotes(EXP), json);
     }
@@ -50,10 +46,7 @@ public class TestCyclic extends SchemaTestBase {
         JsonSchema schema = generator.generateSchema(ListLoop.class);
 
         String json = MAPPER.writeValueAsString(schema);
-        String EXP = "{\"type\":\"object\"," +
-                "\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:ListLoop\"," +
-                "\"properties\":{\"list\":{\"type\":\"array\",\"items\":{\"$ref\":\"" +
-                "urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:ListLoop\"}}}}";
+        String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:ListLoop\",\"type\":\"object\",\"properties\":{\"list\":{\"type\":\"array\",\"items\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:ListLoop\"}}}}";
 
         assertEquals(aposToQuotes(EXP), json);
     }
@@ -63,10 +56,7 @@ public class TestCyclic extends SchemaTestBase {
         JsonSchema schema = generator.generateSchema(MapLoop.class);
 
         String json = MAPPER.writeValueAsString(schema);
-        String EXP = "{\"type\":\"object\"," +
-                "\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:MapLoop\"," +
-                "\"properties\":{\"map\":{\"type\":\"object\",\"additionalProperties\":{" +
-                "\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:MapLoop\"}}}}";
+        String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:MapLoop\",\"type\":\"object\",\"properties\":{\"map\":{\"type\":\"object\",\"additionalProperties\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:MapLoop\"}}}}";
 
         assertEquals(aposToQuotes(EXP), json);
     }
@@ -76,12 +66,7 @@ public class TestCyclic extends SchemaTestBase {
         JsonSchema schema = generator.generateSchema(OuterLoop.class);
 
         String json = MAPPER.writeValueAsString(schema);
-        String EXP = "{\"type\":\"object\"," +
-                "\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:OuterLoop\"," +
-                "\"properties\":{\"inner\":{\"type\":\"object\"," +
-                "\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:InnerLoop\"," +
-                "\"properties\":{\"outer\":{\"type\":\"object\"," +
-                "\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:OuterLoop\"}}}}}";
+        String EXP = "{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:OuterLoop\",\"type\":\"object\",\"properties\":{\"inner\":{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:InnerLoop\",\"type\":\"object\",\"properties\":{\"outer\":{\"$ref\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestCyclic:OuterLoop\"}}}}}";
 
         assertEquals(aposToQuotes(EXP), json);
     }

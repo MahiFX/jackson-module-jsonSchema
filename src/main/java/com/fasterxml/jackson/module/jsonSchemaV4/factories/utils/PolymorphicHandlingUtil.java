@@ -122,7 +122,7 @@ public class PolymorphicHandlingUtil {
                 subTypeName = subTypeName + POLYMORPHIC_TYPE_NAME_SUFFIX;
             }
 
-            references[i] = new ReferenceSchema(subSchemaDefinitionName);
+            references[i] = new ReferenceSchema(subSchemaDefinitionName,subSchema.getType());
 
             subSchemas[i] = subSchema;
 

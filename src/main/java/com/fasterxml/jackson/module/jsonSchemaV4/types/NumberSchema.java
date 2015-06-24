@@ -63,9 +63,11 @@ public class NumberSchema extends ValueTypeSchema {
      * @see com.fasterxml.jackson.databind.jsonSchema.types.JsonSchema#getType()
      */
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.NUMBER;
+    public JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.NUMBER);
     }
+
+
 
     @Override
     public boolean isNumberSchema() {

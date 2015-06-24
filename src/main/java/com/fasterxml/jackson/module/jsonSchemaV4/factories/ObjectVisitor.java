@@ -3,13 +3,11 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
-import com.fasterxml.jackson.databind.jsonschema.SchemaAware;
 import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
@@ -120,7 +118,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         // check if we've seen this argument's sub-schema already and return a reference-schema if we have
         String seenSchemaUri = visitorContext.getSeenSchemaUri(prop.getType());
         if (seenSchemaUri != null) {
-            return new ReferenceSchema(seenSchemaUri);
+            return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(prop.getType()));
         }
 
         SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(originalMapper, getProvider(), visitorContext);
@@ -142,9 +140,10 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         if (visitorContext != null) {
             String seenSchemaUri = visitorContext.getSeenSchemaUri(propertyTypeHint);
             if (seenSchemaUri != null) {
-                return new ReferenceSchema(seenSchemaUri);
+                return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(propertyTypeHint));
             }
         }
+        //TODO, do we need this here?(wouldn't the schema visiotr create a polymorphic object for us anyway?
         PolymorphicHandlingUtil polymorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, propertyTypeHint);
         if (polymorphicHandlingUtil.isPolymorphic()) {
             PolymorphicHandlingUtil.PolymorphiSchemaDefinition polymorphiSchemaDefinition = polymorphicHandlingUtil.extractPolymophicTypes();

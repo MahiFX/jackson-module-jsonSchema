@@ -137,9 +137,11 @@ public class HyperSchema extends JsonSchema {
     protected LinkDescriptionObject[] links;
 
     @Override
-    public JsonFormatTypes getType() {
+    public JSONType getType() {
         return null;
     }
+
+
 
     @Override
     public boolean equals(Object obj) {

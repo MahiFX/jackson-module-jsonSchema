@@ -19,7 +19,7 @@ import java.util.Map;
 public class TestReadJsonSchema
         extends SchemaTestBase {
     enum SchemaEnum {
-        YES, NO;
+        NO,YES;
     }
 
     @JsonPropertyOrder(alphabetic = true)

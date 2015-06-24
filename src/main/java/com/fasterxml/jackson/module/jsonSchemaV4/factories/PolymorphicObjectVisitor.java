@@ -3,11 +3,16 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by zoliszel on 12/06/2015.
@@ -59,6 +64,17 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
                 schema.setDefinitions(new HashMap<String, JsonSchema>());
             }
             schema.getDefinitions().putAll(schemaDefs.getDefinitions());
+            Set<JsonFormatTypes> types = new HashSet<JsonFormatTypes>();
+            for(ReferenceSchema schema : schemaDefs.getReferences()){
+                if(schema.getType().isSingleJSONType()){
+                    types.add(JsonFormatTypes.forValue(schema.getType().asSingleJsonType().getFormatType()));
+                }
+                else if(schema.getType().isArrayJSONType()){
+                    types.addAll(Arrays.asList(schema.getType().asArrayJsonType().getFormatTypes()));
+                }
+            }
+            schema.setTypes(types.toArray(new JsonFormatTypes[0]));
+
         }
 
     }

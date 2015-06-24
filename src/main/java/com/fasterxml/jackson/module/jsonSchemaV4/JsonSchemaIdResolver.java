@@ -11,6 +11,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 import java.util.Arrays;
@@ -31,9 +32,29 @@ public class JsonSchemaIdResolver extends TypeIdResolverBase {
     @Override
     public String idFromValue(Object value) {
         if (value instanceof JsonSchema) {
-            return ((JsonSchema) value).getType().value();
+            JsonSchema schema = ((JsonSchema) value);
+            if(schema.getType()==null){
+                return null;
+            }
+            if(schema.getType().isSingleJSONType()){
+                return schema.getType().asSingleJsonType().getFormatType();
+            }
+            else if(schema.getType().isArrayJSONType()){
+                JsonFormatTypes[] formatTypes = schema.getType().asArrayJsonType().getFormatTypes();
+                return Arrays.toString(toTypeFormatValue(formatTypes));
+            }
+
         }
         return null;
+    }
+
+    private String[] toTypeFormatValue(JsonFormatTypes[] formatTypes) {
+        String[] result = new String[formatTypes.length];
+        for(int i=0;i<formatTypes.length;++i){
+            result[i]=formatTypes[i].value();
+        }
+          return result;
+
     }
 
     @Override
@@ -62,9 +83,13 @@ public class JsonSchemaIdResolver extends TypeIdResolverBase {
                     return ctxt.constructType(StringSchema.class);
                 case ANY:
                 default:
-                    return ctxt.constructType(ObjectSchema.class);
+                   throw new IllegalArgumentException("Unhandled standard type " + stdType);
             }
         }
+        if(id.matches("\\[.+\\]")){
+            return ctxt.constructType(PolymorphicObjectSchema.class);
+        }
+
         // Not a standard type; should use a custom sub-type impl
         throw new IllegalArgumentException("Can not resolve JsonSchema 'type' id of \"" + id
                 + "\", not recognized as one of standard values: " + Arrays.asList(JsonFormatTypes.values()));

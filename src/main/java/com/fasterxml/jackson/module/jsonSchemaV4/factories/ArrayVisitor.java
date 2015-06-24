@@ -91,7 +91,7 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
                 if (visitorContext != null) {
                     String seenSchemaUri = visitorContext.getSeenSchemaUri(contentType);
                     if (seenSchemaUri != null) {
-                        schema.setItemsSchema(new ReferenceSchema(seenSchemaUri));
+                        schema.setItemsSchema(new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(contentType)));
                         return;
                     }
                 }

@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
@@ -18,8 +19,9 @@ public class AnyOfSchema extends JsonSchema {
     }
 
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.NULL;
+    @JsonIgnore
+    public JsonSchema.JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.NULL);
     }
 
     public void setAnyOf(ReferenceSchema[] anyOf) {

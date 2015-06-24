@@ -80,7 +80,8 @@ public class RecursivePolymorhicClassTest {
         com.github.fge.jsonschema.main.JsonSchema validatorSchema = Utils.createValidatorSchemaForClass((B.class), schemaMapper);
         ProcessingReport report = validatorSchema.validate(JsonLoader.fromString(jsonInText));
         System.out.println(report.toString());
-        Assert.assertTrue("Json Failed validation", report.isSuccess());
+        Assert.assertTrue("Json Failed validation" +
+                 report.toString(), report.isSuccess());
     }
 
 

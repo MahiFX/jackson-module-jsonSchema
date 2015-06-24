@@ -87,7 +87,7 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
         if (visitorContext != null) {
             String seenSchemaUri = visitorContext.getSeenSchemaUri(propertyTypeHint);
             if (seenSchemaUri != null) {
-                return new ReferenceSchema(seenSchemaUri);
+                return new ReferenceSchema(seenSchemaUri,visitorContext.getJsonTypeForVisitedSchema(propertyTypeHint));
             }
         }
 

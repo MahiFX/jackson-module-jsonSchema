@@ -48,8 +48,8 @@ public class StringSchema extends ValueTypeSchema {
     }
 
     @Override
-    public JsonFormatTypes getType() {
-        return JsonFormatTypes.STRING;
+    public JSONType getType() {
+        return new SingleJsonType(JsonFormatTypes.STRING);
     }
 
     @Override

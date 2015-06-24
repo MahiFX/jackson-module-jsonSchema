@@ -173,4 +173,19 @@ public class TypeDecorationTest {
         Assert.assertNotNull("Type information is not encoded for Array type", arrayItems[0].asStringSchema());
         Assert.assertTrue("Type is not restricted", arrayItems[0].asStringSchema().getEnums().contains(JSONSubTypeBaseClassArrayMixIn.TYPE_NAME));
     }
+
+    @Test
+    public void objectDoesntHaveTypeRestriction() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
+        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
+        typer = typer.init(JsonTypeInfo.Id.NAME, null);
+        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
+        mapper.setDefaultTyping(typer);
+        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
+        mapper.acceptJsonFormatVisitor(Object.class, wrapper);
+        JsonSchema schema = wrapper.finalSchema();
+        String json =toJson(schema, schema.getClass(), new ObjectMapper());
+        Assert.assertEquals("{\"type\":[\"string\",\"number\",\"integer\",\"boolean\",\"object\",\"array\",\"null\"]}",json);
+    }
 }

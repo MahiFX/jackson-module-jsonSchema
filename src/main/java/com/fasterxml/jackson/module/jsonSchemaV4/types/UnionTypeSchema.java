@@ -30,7 +30,7 @@ public class UnionTypeSchema extends JsonSchema {
     }
 
     @Override
-    public JsonFormatTypes getType() {
+    public JSONType getType() {
         // Hmmh. What should be returned here?
         return null;
     }
