@@ -40,6 +40,8 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     protected JavaType originalType;
     protected VisitorContext visitorContext;
 
+    protected WrapperFactory wrapperFactory;
+
     protected ObjectMapper originalMapper;
 
     public SchemaFactoryWrapper(ObjectMapper originalMapper) {
@@ -60,6 +62,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         visitorFactory = new FormatVisitorFactory(wrapperFactory);
         this.originalMapper = originalMapper != null ? originalMapper.copy() : null;
         this.visitorContext= new VisitorContext();
+        this.wrapperFactory=wrapperFactory;
     }
 
 
@@ -205,7 +208,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     public JsonSchema finalSchema() {
         JsonSchema result = schema;
         if (originalType != null) {
-            result = new VisitorUtils(originalMapper, visitorContext, provider).decorateWithTypeInformation(schema, originalType);
+            result = new VisitorUtils(wrapperFactory.getWrapper(originalMapper,provider), visitorContext, provider).decorateWithTypeInformation(schema, originalType);
         }
         result = PolymorphicHandlingUtil.propagateDefinitionsUp(result);
       //  System.out.println(toJson(result,result.getClass(),new ObjectMapper()));
@@ -220,5 +223,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         }
     }
 
-
+    public JsonSchemaFactory getSchemaProvider() {
+        return schemaProvider;
+    }
 }

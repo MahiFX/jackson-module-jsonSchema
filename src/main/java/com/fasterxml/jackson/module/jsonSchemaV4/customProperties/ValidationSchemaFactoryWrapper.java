@@ -26,7 +26,7 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     private ValidationConstraintResolver constraintResolver;
 
-    private static class ValidationSchemaFactoryWrapperFactory extends WrapperFactory {
+    public static class ValidationSchemaFactoryWrapperFactory extends WrapperFactory {
         @Override
         public SchemaFactoryWrapper getWrapper(ObjectMapper mapper, SerializerProvider p) {
             SchemaFactoryWrapper wrapper = new ValidationSchemaFactoryWrapper(mapper);

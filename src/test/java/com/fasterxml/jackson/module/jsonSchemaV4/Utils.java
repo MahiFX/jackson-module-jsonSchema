@@ -22,10 +22,13 @@ public class Utils {
 
     public static JsonSchema schema(Type t, final ObjectMapper mapper) {
         try {
+            /*
             SchemaFactoryWrapper visitor = new SchemaFactoryWrapper(mapper);
 
             mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
             return visitor.finalSchema();
+            */
+            return new JsonSchemaGenerator(mapper).generateSchema(t);
         } catch (JsonMappingException e) {
             //TODO throw and sort out exception
             return null;

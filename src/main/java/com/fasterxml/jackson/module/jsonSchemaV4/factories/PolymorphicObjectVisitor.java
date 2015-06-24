@@ -26,12 +26,16 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
     private JavaType originalType;
 
     protected SerializerProvider provider;
+
     private ObjectMapper originalMapper;
 
-    public PolymorphicObjectVisitor(SerializerProvider provider, PolymorphicObjectSchema schema, JavaType type) {
+    private WrapperFactory wrapperFactory;
+
+    public PolymorphicObjectVisitor(SerializerProvider provider, PolymorphicObjectSchema schema, JavaType type,WrapperFactory wrapperFactory) {
         this.schema = schema;
         this.originalType = type;
         this.provider = provider;
+        this.wrapperFactory=wrapperFactory;
     }
 
     public void setProvider(SerializerProvider provider) {
@@ -56,7 +60,7 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
     }
 
     public void visitPolymorphicObject(JavaType type) {
-        PolymorphicHandlingUtil handlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, type);
+        PolymorphicHandlingUtil handlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, type,wrapperFactory);
         if (handlingUtil.isPolymorphic()) {
             PolymorphicHandlingUtil.PolymorphiSchemaDefinition schemaDefs = handlingUtil.extractPolymophicTypes();
             schema.setAnyOf(schemaDefs.getReferences());

@@ -124,7 +124,7 @@ public class FormatVisitorFactory {
     }
 
     public PolymorphicObjectVisitor polymorphicObjectVisitor(SerializerProvider provider, PolymorphicObjectSchema s, VisitorContext visitorContext, JavaType type, ObjectMapper originalMapper) {
-        PolymorphicObjectVisitor polymorphicObjectVisitor = new PolymorphicObjectVisitor(provider, s, type);
+        PolymorphicObjectVisitor polymorphicObjectVisitor = new PolymorphicObjectVisitor(provider, s, type,wrapperFactory);
         polymorphicObjectVisitor.setVisitorContext(visitorContext);
         polymorphicObjectVisitor.setOriginalMapper(originalMapper);
         return polymorphicObjectVisitor;

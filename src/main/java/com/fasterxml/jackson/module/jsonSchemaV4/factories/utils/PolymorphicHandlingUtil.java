@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
@@ -46,11 +47,11 @@ public class PolymorphicHandlingUtil {
 
     private Collection<NamedType> subTypes = Collections.emptyList();
 
-    public PolymorphicHandlingUtil(VisitorContext visitorContext, SerializerProvider provider, ObjectMapper mapper, JavaType originalType) {
+    public PolymorphicHandlingUtil(VisitorContext visitorContext, SerializerProvider provider, ObjectMapper mapper, JavaType originalType,WrapperFactory factory) {
         this.visitorContext = visitorContext;
         this.provider = provider;
         this.mapper = mapper;
-        this.visitorUtils = new VisitorUtils(mapper, visitorContext, provider);
+        this.visitorUtils = new VisitorUtils(factory.getWrapper(mapper,provider,visitorContext), visitorContext, provider);
         this.originalType = originalType;
         processType(originalType);
     }
