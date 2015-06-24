@@ -8,7 +8,9 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.FormatVisitorFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.JsonSchemaFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.VisitorContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
@@ -34,24 +36,17 @@ public class VisitorUtils {
 
     protected final SerializerProvider provider;
 
-    public VisitorUtils(ObjectMapper mapper, VisitorContext visitorContext, SerializerProvider provider) {
+    protected final JsonSchemaFactory schemaFactory;
+
+    public VisitorUtils(SchemaFactoryWrapper visitor, VisitorContext visitorContext, SerializerProvider provider) {
         this.visitorContext = visitorContext;
-        visitor = new SchemaFactoryWrapper(mapper);
+        this.visitor = visitor;
         visitor.setVisitorContext(visitorContext);
         this.provider = provider;
+        this.schemaFactory=visitor.getSchemaProvider();
     }
 
     protected JsonSchema schema(Type t, ObjectMapper mapper) {
-        /*
-        if (visitorContext != null) {
-            if (visitorContext != null) {
-                String seenSchemaUri = visitorContext.getSeenSchemaUri(mapper.constructType(t));
-                if (seenSchemaUri != null) {
-                    return new ReferenceSchema(seenSchemaUri);
-                }
-            }
-        }
-        */
         try {
             mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
             return visitor.finalSchema();
@@ -70,6 +65,7 @@ public class VisitorUtils {
         if (beanDescription == null) {
             return originalSchema;
         }
+        /*
         Collection<NamedType> namedTypes = null;
         if (provider.getConfig().getSubtypeResolver() == null) {
             namedTypes = Collections.emptyList();
@@ -77,12 +73,23 @@ public class VisitorUtils {
             namedTypes = provider.getConfig().getSubtypeResolver().collectAndResolveSubtypes(beanDescription.getClassInfo(), provider.getConfig(), provider.getConfig().getAnnotationIntrospector());
 
         }
+        */
+
+        TypeSerializer typeSerializer =null;
+        try {
+            typeSerializer=provider.getSerializerFactory().createTypeSerializer(provider.getConfig(),originalType);
+        } catch (JsonMappingException e) {
+           //Can't get serializer, just return...
+            return originalSchema;
+        }
+        /*
         TypeResolverBuilder<?> typer = provider.getConfig().getDefaultTyper(originalType);
         if (typer == null) {
             return originalSchema;
         }
+        */
 
-        TypeSerializer typeSerializer = typer.buildTypeSerializer(provider.getConfig(), originalType, namedTypes);
+        //TypeSerializer typeSerializer = typer.buildTypeSerializer(provider.getConfig(), originalType, namedTypes);
 
         if (typeSerializer == null) {
             return originalSchema;
@@ -90,7 +97,7 @@ public class VisitorUtils {
         if (typeSerializer.getTypeIdResolver() == null) {
             return originalSchema;
         }
-        StringSchema typeSchema = new StringSchema();
+        StringSchema typeSchema =schemaFactory.stringSchema();
         String typeName = typeSerializer.getTypeIdResolver().idFromValueAndType(null, originalType.getRawClass());
         if (typeName != null && typeName.length() > 0 && originalType.getRawClass() !=Object.class) {
             Set<String> allowedValues = new HashSet<String>();
@@ -105,7 +112,7 @@ public class VisitorUtils {
                 }
 
                 if (originalSchema instanceof ArraySchema) {
-                    ArraySchema arraySchema = new ArraySchema();
+                    ArraySchema arraySchema = schemaFactory.arraySchema();
                     arraySchema.setAdditionalItems(new ArraySchema.NoAdditionalItems());
                     arraySchema.setItems(new ArraySchema.ArrayItems(new JsonSchema[]{typeSchema, originalSchema}));
                     return arraySchema;
@@ -117,12 +124,18 @@ public class VisitorUtils {
                 break; //Unsupported schema type
 
             case WRAPPER_ARRAY:
-                ArraySchema arraySchema = new ArraySchema();
+                ArraySchema arraySchema = schemaFactory.arraySchema();
                 arraySchema.setAdditionalItems(new ArraySchema.NoAdditionalItems());
                 arraySchema.setItems(new ArraySchema.ArrayItems(new JsonSchema[]{typeSchema, originalSchema}));
-                break;
+                return arraySchema;
+
             case WRAPPER_OBJECT:
-                //TODO: support wrapper objects
+                if(typeName==null){
+                    throw new IllegalArgumentException("Requested WRAPPER Object resolution but no typename was found");
+                }
+                ObjectSchema wrapperObject =schemaFactory.objectSchema();
+                wrapperObject.putProperty(typeName,originalSchema);
+                return wrapperObject;
             case EXTERNAL_PROPERTY:
             case EXISTING_PROPERTY:
             default:

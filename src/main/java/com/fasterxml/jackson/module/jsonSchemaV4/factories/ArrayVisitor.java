@@ -50,7 +50,7 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
 
     @Override
     public JsonSchema getSchema() {
-        return new VisitorUtils(originalMapper, visitorContext, provider).decorateWithTypeInformation(schema, null);
+        return new VisitorUtils(wrapperFactory.getWrapper(originalMapper,provider), visitorContext, provider).decorateWithTypeInformation(schema, null);
     }
 
     /*
@@ -81,7 +81,7 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
     public void itemsFormat(JsonFormatVisitable handler, JavaType contentType) throws JsonMappingException {
         // An array of object matches any values, thus we leave the schema empty.
         if (contentType.getRawClass() != Object.class) {
-            PolymorphicHandlingUtil polyMorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, contentType);
+            PolymorphicHandlingUtil polyMorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, contentType,wrapperFactory);
             if (polyMorphicHandlingUtil.isPolymorphic()) {
                 PolymorphicHandlingUtil.PolymorphiSchemaDefinition polymorphicDefinition = polyMorphicHandlingUtil.extractPolymophicTypes();
                 schema.setItemsSchema(new AnyOfSchema(polymorphicDefinition.getReferences()));

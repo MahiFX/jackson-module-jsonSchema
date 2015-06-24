@@ -188,4 +188,38 @@ public class TypeDecorationTest {
         String json =toJson(schema, schema.getClass(), new ObjectMapper());
         Assert.assertEquals("{\"type\":[\"string\",\"number\",\"integer\",\"boolean\",\"object\",\"array\",\"null\"]}",json);
     }
+
+    @JsonTypeName(ClassAsWrapperObject.TYPE_NAME)
+    @JsonTypeInfo(include = JsonTypeInfo.As.WRAPPER_OBJECT, use = JsonTypeInfo.Id.NAME)
+    public static class ClassAsWrapperObject{
+
+        public static final String TYPE_NAME="ClassAsWrapperObject";
+        @JsonProperty
+        private String someProperty;
+
+
+        public void setSomeProperty(String someProperty) {
+            this.someProperty = someProperty;
+        }
+
+        public String getSomeProperty() {
+            return someProperty;
+        }
+    }
+    @Test
+    public void testWrapperObjectDecoration()throws Exception{
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
+        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
+        typer = typer.init(JsonTypeInfo.Id.NAME, null);
+        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
+        mapper.setDefaultTyping(typer);
+
+        SchemaFactoryWrapper wrapper = new SchemaFactoryWrapper(mapper);
+        mapper.acceptJsonFormatVisitor(ClassAsWrapperObject.class, wrapper);
+        JsonSchema schema = wrapper.finalSchema();
+        String json =toJson(schema, schema.getClass(), new ObjectMapper());
+        Assert.assertEquals("{\"type\":\"object\",\"properties\":{\"ClassAsWrapperObject\":{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TypeDecorationTest:ClassAsWrapperObject\",\"type\":\"object\",\"properties\":{\"someProperty\":{\"type\":\"string\"}}}},\"required\":[\"ClassAsWrapperObject\"]}",json);
+
+    }
 }

@@ -144,7 +144,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
             }
         }
         //TODO, do we need this here?(wouldn't the schema visiotr create a polymorphic object for us anyway?
-        PolymorphicHandlingUtil polymorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, propertyTypeHint);
+        PolymorphicHandlingUtil polymorphicHandlingUtil = new PolymorphicHandlingUtil(visitorContext, provider, originalMapper, propertyTypeHint,wrapperFactory);
         if (polymorphicHandlingUtil.isPolymorphic()) {
             PolymorphicHandlingUtil.PolymorphiSchemaDefinition polymorphiSchemaDefinition = polymorphicHandlingUtil.extractPolymophicTypes();
             if (schema.getDefinitions() == null) {
