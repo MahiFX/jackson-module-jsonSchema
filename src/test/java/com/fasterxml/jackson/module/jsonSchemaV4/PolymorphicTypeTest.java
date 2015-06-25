@@ -1,5 +1,10 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
@@ -72,6 +77,28 @@ public class PolymorphicTypeTest {
 
     }
 
+
+    @Test
+    public void testSchemaGenerationIsIdempotent() throws JsonProcessingException {
+        Type type = JSONSubTypeBaseClass.class;
+        JsonSchemaGenerator schemaGenerator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchema schema = schemaGenerator.generateSchema(type);
+        schema = schemaGenerator.generateSchema(type);
+        String json = schemaGenerator.schemaAsString(schema);
+        System.out.println(json);
+        Assert.assertNotNull("definitions should have been added", schema.getDefinitions());
+        Assert.assertEquals("there should be 4 sub schema", 4, schema.getDefinitions().entrySet().size());
+        Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
+        Assert.assertTrue("Found no Company_1 schema", schema.getDefinitions().containsKey("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX));
+        Assert.assertTrue("Found no Person schema", schema.getDefinitions().containsKey("Person"));
+        Assert.assertTrue("Found no BigCompany schema", schema.getDefinitions().containsKey("BigCompany"));
+        Assert.assertTrue("Expected polymorphicObject", schema instanceof PolymorphicObjectSchema);
+        Assert.assertTrue("PolymoprhicSchema should contain Person Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "Person"));
+        Assert.assertTrue("PolymoprhicSchema should contain Company Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "Company"));
+        Assert.assertTrue("PolymoprhicSchema should contain BigCompany Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "BigCompany"));
+
+    }
+
     private boolean containsReference(ReferenceSchema[] refSchemas, String name) {
         if (refSchemas == null) {
             return false;
@@ -94,6 +121,35 @@ public class PolymorphicTypeTest {
         Assert.assertTrue("First item is not a person", media[0] instanceof Person);
         Assert.assertTrue("Second item is not a Company", media[1] instanceof Company);
         Assert.assertTrue("Third item is not a BigCompany", media[2] instanceof BigCompany);
+    }
+
+
+    @JsonTypeName("Number")
+    @JsonSubTypes({@JsonSubTypes.Type(Integer.class),
+                   @JsonSubTypes.Type(Double.class)})
+    interface UnionType{
+
+    }
+
+    @JsonTypeName("Double")
+    interface DoubleType{
+
+    }
+
+    @JsonTypeName("Integer")
+    interface IntegerType{
+
+    }
+    @Test
+    public void testUnionType() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(Number.class,UnionType.class);
+        mapper.addMixIn(Double.class,DoubleType.class);
+        mapper.addMixIn(Integer.class,IntegerType.class);
+        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        String schema = generator.schemaAsString(Number.class);
+        System.out.println(schema);
+        Assert.assertEquals("{\"type\":[\"number\",\"integer\"],\"definitions\":{\"Integer\":{\"type\":\"integer\"},\"Double\":{\"type\":\"number\"}},\"anyOf\":[{\"$ref\":\"#/definitions/Double\"},{\"$ref\":\"#/definitions/Integer\"}]}",schema);
     }
 
 

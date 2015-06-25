@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonBooleanFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWithSerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNullFormatVisitor;
@@ -40,19 +39,15 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
 
     protected JavaType originalType;
 
-
     protected SchemaFactoryWrapper() {
 
     }
-
-
 
     /*
     /*********************************************************************
     /* JsonFormatVisitorWrapper implementation
     /*********************************************************************
      */
-
 
     /**
      * Any is not supported in V4. Backbridging it with Object Format
@@ -65,8 +60,6 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
 
         return new AnyVisitor(this.schema);
     }
-
-
 
     @Override
     public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
@@ -135,16 +128,20 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
 
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
-        ObjectSchema s = SchemaGenerationContext.get().getSchemaProvider().objectSchema();
+        SchemaGenerationContext context = SchemaGenerationContext.get();
+        ObjectSchema s = context.getSchemaProvider().objectSchema();
         schema = s;
         this.originalType = convertedType;
+        if(!context.isWithAdditonalProperties()){
+            s.setAdditionalProperties(ObjectSchema.NoAdditionalProperties.instance);
+        }
 
         // give each object schema a reference id and keep track of the ones we've seen
-        String schemaUri = SchemaGenerationContext.get().addSeenSchemaUri(convertedType, s.getType());
+        String schemaUri = context.addSeenSchemaUri(convertedType, s.getType());
         if (schemaUri != null) {
             s.setId(schemaUri);
         }
-        JsonObjectFormatVisitor visitor = SchemaGenerationContext.get().getVisitorFactory().objectFormatVisitor(s ,convertedType);
+        JsonObjectFormatVisitor visitor = context.getVisitorFactory().objectFormatVisitor(s ,convertedType);
         visitor.setProvider(getProvider());
         return visitor;
     }

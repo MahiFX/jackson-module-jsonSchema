@@ -596,6 +596,7 @@ public abstract class JsonSchema {
     public static class ArrayJsonType extends JSONType{
 
         public ArrayJsonType(JsonFormatTypes[] formatTypes) {
+            Arrays.sort(formatTypes);
             this.formatTypes = formatTypes;
         }
 
