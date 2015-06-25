@@ -42,6 +42,8 @@ public class SchemaGenerationContext {
 
     private final ObjectMapper mapper;
 
+    private final boolean withAdditonalProperties;
+
     public FormatVisitorFactory getVisitorFactory() {
         return visitorFactory;
     }
@@ -66,15 +68,20 @@ public class SchemaGenerationContext {
         return getWrapperFactory().getWrapper(provider);
     }
 
-    public SchemaGenerationContext(FormatVisitorFactory visitorFactory, JsonSchemaFactory schemaProvider, WrapperFactory wrapperFactory, ObjectMapper mapper) {
+    public SchemaGenerationContext(FormatVisitorFactory visitorFactory, JsonSchemaFactory schemaProvider, WrapperFactory wrapperFactory, ObjectMapper mapper,boolean withAdditonalProperties) {
         this.visitorFactory = visitorFactory;
         this.schemaProvider = schemaProvider;
         this.wrapperFactory = wrapperFactory;
         this.mapper = mapper;
+        this.withAdditonalProperties =withAdditonalProperties;
     }
 
     public boolean visitedPolymorphicType(JavaType type){
         return seenPolymorphicTypes.contains(type);
+    }
+
+    public boolean isWithAdditonalProperties(){
+        return withAdditonalProperties;
     }
 
     public String addSeenSchemaUriForPolymorphic(JavaType type){
@@ -84,12 +91,6 @@ public class SchemaGenerationContext {
 
     public boolean addVisitedPolymorphicType(JavaType t){
         return visitedTypes.add(t);
-    }
-    public String getSeenSchemaUriPolymorphic(JavaType aSeenSchema) {
-        if(seenPolymorphicTypes.contains(aSeenSchema)){
-            return javaTypeToUrn(aSeenSchema) + ":polymorphic";
-        }
-        return null;
     }
 
     public String addSeenSchemaUri(JavaType aSeenSchema,JsonSchema.JSONType jsonType) {

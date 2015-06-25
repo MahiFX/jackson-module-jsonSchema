@@ -55,7 +55,7 @@ public class HyperSchemaFactoryWrapperTest extends SchemaTestBase {
         ObjectMapper mapper = new ObjectMapper();
 
         JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder()
-                    .withWrapperFactory(new HyperSchemaFactoryWrapper.HyperSchemaFactoryWrapperFactory())
+                    .withWrapperFactory(new HyperSchemaFactoryWrapper.HyperSchemaFactoryWrapperFactory(true))
                     .withObjectMapper(mapper).build();
 
         JsonSchema personSchema = generator.generateSchema(Person.class);
