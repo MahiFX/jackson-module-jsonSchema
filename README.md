@@ -130,7 +130,7 @@ See com.fasterxml.jackson.module.jsonSchemaV4.customProperties.TitleSchemaFactor
 JSON Schema has the ability to mark fields as required. This module supports this via the `@JsonProperty(required = true)` field annotation.
 
 ### AdditonalItems support
-JSON Schema has the ability to restrict JSON document to only have properties which are already defined in the schema via setting "additionalItems":false on object schemas. To enable this feature use:
+JSON Schema has the ability to restrict JSON document to only have properties which are already defined in the schema via setting additionalItems to false on object schemas. To enable this feature use:
 ```java
 JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().
                                     .withAdditonalItems(false).build();
@@ -175,7 +175,8 @@ will create a schema of
 ```
 
 ### Polymorphic type support
-Jackson allows subtype information to be specified on classes/interfaces to allow polymorphic JSON generation. This is achived via using the @JsonSubTypes annotation. This generator also takes that annotation into consideration and generates a schema which is Polymorphic:
+Jackson allows subtype information to be specified on classes/interfaces to allow polymorphic JSON generation. This is achived via using the @JsonSubTypes annotation. This generator also takes that annotation into consideration and generates a schema which is Polymorphic
+
 Given the following mixins
 ```java
     @JsonTypeName("Number")
@@ -202,7 +203,9 @@ Generation of schema:
    mapper.addMixIn(Number.class,UnionType.class);
    mapper.addMixIn(Double.class,DoubleType.class);
    mapper.addMixIn(Integer.class,IntegerType.class);
-   JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+   JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder()
+                                        .withObjectMapper(mapper)
+                                        .build();
    String schema = generator.schemaAsString(Number.class);
 ```
 will yield the following JSON schema:
