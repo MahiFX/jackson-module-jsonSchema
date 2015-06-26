@@ -58,4 +58,14 @@ public class ReferenceSchema extends SimpleTypeSchema {
         return JsonSchema.equals($ref, that.$ref)
                 && super._equals(that);
     }
+
+    @Override
+    public boolean isReferenceSchema() {
+        return true;
+    }
+
+    @Override
+    public ReferenceSchema asReferenceSchema() {
+        return this;
+    }
 }
