@@ -167,7 +167,6 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
             result = new VisitorUtils(getProvider()).decorateWithTypeInformation(schema, originalType);
         }
         result = PolymorphicHandlingUtil.propagateDefinitionsUp(result);
-      //  System.out.println(toJson(result,result.getClass(),new ObjectMapper()));
         return result;
     }
 

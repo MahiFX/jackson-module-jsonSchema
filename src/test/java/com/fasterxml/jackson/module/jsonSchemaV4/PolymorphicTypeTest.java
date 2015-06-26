@@ -71,6 +71,7 @@ public class PolymorphicTypeTest {
         Assert.assertTrue("Found no Person schema", schema.getDefinitions().containsKey("Person"));
         Assert.assertTrue("Found no BigCompany schema", schema.getDefinitions().containsKey("BigCompany"));
         Assert.assertTrue("Expected polymorphicObject", schema instanceof PolymorphicObjectSchema);
+        Assert.assertTrue("Expected polymorphicObject", (((PolymorphicObjectSchema)schema).getId()!=null));
         Assert.assertTrue("PolymoprhicSchema should contain Person Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "Person"));
         Assert.assertTrue("PolymoprhicSchema should contain Company Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "Company"));
         Assert.assertTrue("PolymoprhicSchema should contain BigCompany Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), "BigCompany"));
@@ -143,13 +144,13 @@ public class PolymorphicTypeTest {
     @Test
     public void testUnionType() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.addMixIn(Number.class,UnionType.class);
-        mapper.addMixIn(Double.class,DoubleType.class);
-        mapper.addMixIn(Integer.class,IntegerType.class);
+        mapper.addMixIn(Number.class, UnionType.class);
+        mapper.addMixIn(Double.class, DoubleType.class);
+        mapper.addMixIn(Integer.class, IntegerType.class);
         JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
         String schema = generator.schemaAsString(Number.class);
         System.out.println(schema);
-        Assert.assertEquals("{\"type\":[\"number\",\"integer\"],\"definitions\":{\"Integer\":{\"type\":\"integer\"},\"Double\":{\"type\":\"number\"}},\"anyOf\":[{\"$ref\":\"#/definitions/Double\"},{\"$ref\":\"#/definitions/Integer\"}]}",schema);
+        Assert.assertEquals("{\"id\":\"urn:jsonschema:java:lang:Number\",\"type\":[\"number\",\"integer\"],\"definitions\":{\"Integer\":{\"type\":\"integer\"},\"Double\":{\"type\":\"number\"}},\"anyOf\":[{\"$ref\":\"#/definitions/Double\"},{\"$ref\":\"#/definitions/Integer\"}]}", schema);
     }
 
 

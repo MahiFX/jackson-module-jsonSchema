@@ -20,6 +20,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.JsonTypesDeserializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.SimpleTypeSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.UnionTypeSchema;
@@ -253,6 +254,7 @@ public abstract class JsonSchema {
         return null;
     }
 
+
     public String getId() {
         return id;
     }
@@ -397,6 +399,17 @@ public abstract class JsonSchema {
     }
 
 
+    @JsonIgnore
+    public boolean isPolymorhpicObjectSchema() {
+        return false;
+    }
+
+    @JsonIgnore
+    public boolean isReferenceSchema() {
+        return false;
+    }
+
+
     /**
      * determine if this JsonSchema is an {@link ValueTypeSchema}.
      *
@@ -520,6 +533,10 @@ public abstract class JsonSchema {
             }
         }
         return true;
+    }
+
+    public ReferenceSchema asReferenceSchema() {
+        return null;
     }
 
 

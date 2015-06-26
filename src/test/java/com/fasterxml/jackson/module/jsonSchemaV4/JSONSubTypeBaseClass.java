@@ -10,7 +10,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 /**
  * Created by zoliszel on 09/06/2015.
  */
-@JsonTypeName(JSONSubTypeBaseClass.TYPE)
+//@JsonTypeName(JSONSubTypeBaseClass.TYPE)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
         @JsonSubTypes.Type(Person.class),

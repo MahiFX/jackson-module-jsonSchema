@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
@@ -37,6 +38,14 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
     }
 
     public void visitPolymorphicObject(JavaType type) {
+
+        SchemaGenerationContext context = SchemaGenerationContext.get();
+        String seenSchemaUri = context.getSeenSchemaUri(type);
+        if (seenSchemaUri != null) {
+            throw new IllegalStateException("JavaType: " + type.getRawClass().getSimpleName() + "has already been visited. A single class can be handled polymorphicly only once");
+        }
+
+
         PolymorphicHandlingUtil handlingUtil = new PolymorphicHandlingUtil(type,this.provider);
         if (handlingUtil.isPolymorphic()) {
             PolymorphicHandlingUtil.PolymorphiSchemaDefinition schemaDefs = handlingUtil.extractPolymophicTypes();
@@ -54,8 +63,12 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
                     types.addAll(Arrays.asList(schema.getType().asArrayJsonType().getFormatTypes()));
                 }
             }
-            schema.setTypes(types.toArray(new JsonFormatTypes[0]));
+            JsonFormatTypes[] formatTypes = types.toArray(new JsonFormatTypes[0]);
+            schema.setTypes(formatTypes);
+            String id=context.addSeenSchemaUri(type,schema.getType());
+            schema.setId(id);
         }
+
 
     }
 }
