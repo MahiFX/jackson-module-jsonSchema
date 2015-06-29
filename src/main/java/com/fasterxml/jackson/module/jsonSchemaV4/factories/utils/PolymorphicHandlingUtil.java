@@ -1,32 +1,78 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories.utils;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by zoliszel on 16/06/2015.
  */
 public class PolymorphicHandlingUtil {
 
+    private static final Set<String>  ALLOWED_NON_NUMERIC_VALUES = new HashSet<String>(Arrays.asList("INF", "Infinity", "-INF", "-Infinity", "NaN"));
+
     public static final String POLYMORPHIC_TYPE_NAME_SUFFIX = "_1";
+
+    public static final String NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE ="___NUMBER___";
+
+    public static final String NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE ="__ALLOWED_NON_NUMERIC_VALUES___";
+
+    public static final String NUMBER_WITH_NON_NUMERIC_VALUES="___NUMBER_WTIH_NON_NUMERIC_VALUES___";
+
+
+    private static final String DEFINITION_PREFIX = "#/definitions/";
+
+
+    private static JsonSchema getNumberSchemaWithAllowedString(){
+        NumberSchema numberSchema = new NumberSchema();
+        numberSchema.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE));
+
+        StringSchema allowedStringValues = new StringSchema();
+        allowedStringValues.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE));
+        allowedStringValues.setEnums(ALLOWED_NON_NUMERIC_VALUES);
+
+        PolymorphicObjectSchema wrappedSchema = new PolymorphicObjectSchema();
+        wrappedSchema.setDefinitions(new HashMap<String, JsonSchema>());
+        wrappedSchema.getDefinitions().put(NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE,numberSchema);
+        wrappedSchema.getDefinitions().put(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE,allowedStringValues);
+
+        ReferenceSchema numberReference = new ReferenceSchema(DEFINITION_PREFIX+ NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE,numberSchema.getType());
+        ReferenceSchema nonNumericValuesSchema =  new ReferenceSchema(DEFINITION_PREFIX+ NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE,allowedStringValues.getType());
+
+        wrappedSchema.setOneOf(new ReferenceSchema[]{numberReference,nonNumericValuesSchema});
+        wrappedSchema.setTypes(new JsonFormatTypes[]{JsonFormatTypes.NUMBER,JsonFormatTypes.STRING});
+        wrappedSchema.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_VALUES));
+
+        ReferenceSchema referenceSchema = new ReferenceSchema(DEFINITION_PREFIX +NUMBER_WITH_NON_NUMERIC_VALUES,wrappedSchema.getType());
+        referenceSchema.setDefinitions(new HashMap<String, JsonSchema>());
+        referenceSchema.getDefinitions().put(NUMBER_WITH_NON_NUMERIC_VALUES,wrappedSchema);
+        return referenceSchema;
+    }
+
     private final SerializerProvider provider;
 
     public interface PolymorphiSchemaDefinition {
@@ -150,7 +196,7 @@ public class PolymorphicHandlingUtil {
         if (!namedType.hasName()) {
             throw new IllegalArgumentException("Class " + namedType.getClass().getSimpleName() + " has no JSON name. Try using @JsonTypeName annotation");
         }
-        return "#/definitions/" + namedType.getName();
+        return DEFINITION_PREFIX + namedType.getName();
     }
 
     public static JsonSchema propagateDefinitionsUp(JsonSchema node){
@@ -162,6 +208,26 @@ public class PolymorphicHandlingUtil {
 
     }
 
+    public static JsonSchema wrapNonNumericTypes(JsonSchema originalSchema) {
+        if(!originalSchema.isNumberSchema()){
+            return originalSchema;
+        }
+
+        if(originalSchema instanceof IntegerSchema){
+            return originalSchema;
+        }
+        if(!SchemaGenerationContext.get().getMapper().isEnabled(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS)){
+            return originalSchema;
+        }
+
+        NumberSchema numberSchema = (NumberSchema)originalSchema;
+        if(numberSchema.getEnums()!=null && !numberSchema.getEnums().isEmpty()){
+            return numberSchema;
+        }
+
+        return getNumberSchemaWithAllowedString();
+
+    }
     private static Map<String,JsonSchema> extractDefinitions(JsonSchema node,Map<String,JsonSchema> definitionsSoFar){
         if(node.isObjectSchema()){
             if(node.asObjectSchema().getProperties()!=null) {

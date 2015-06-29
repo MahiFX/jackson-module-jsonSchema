@@ -72,4 +72,14 @@ public class PolymorphicObjectSchema extends ObjectSchema {
     public void setNot(ReferenceSchema not) {
         this.not = not;
     }
+
+    @Override
+    public boolean isPolymorhpicObjectSchema() {
+        return true;
+    }
+
+    @Override
+    public PolymorphicObjectSchema asPolymorphicObjectSchema() {
+        return this;
+    }
 }

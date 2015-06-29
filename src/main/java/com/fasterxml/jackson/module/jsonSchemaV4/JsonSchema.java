@@ -20,6 +20,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.JsonTypesDeserializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.SimpleTypeSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
@@ -536,6 +537,10 @@ public abstract class JsonSchema {
     }
 
     public ReferenceSchema asReferenceSchema() {
+        return null;
+    }
+
+    public PolymorphicObjectSchema asPolymorphicObjectSchema() {
         return null;
     }
 
