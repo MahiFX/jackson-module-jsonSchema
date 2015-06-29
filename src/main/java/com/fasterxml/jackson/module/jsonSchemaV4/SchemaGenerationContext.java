@@ -86,7 +86,7 @@ public class SchemaGenerationContext {
 
     public String addSeenSchemaUriForPolymorphic(JavaType type){
         seenPolymorphicTypes.add(type);
-        return javaTypeToUrn(type) + ":polymorphic";
+        return javaTypeToUrn(type.toCanonical()) + ":polymorphic";
     }
 
     public boolean addVisitedPolymorphicType(JavaType t){
@@ -96,7 +96,7 @@ public class SchemaGenerationContext {
     public String addSeenSchemaUri(JavaType aSeenSchema,JsonSchema.JSONType jsonType) {
         if (aSeenSchema != null && !aSeenSchema.isPrimitive()) {
             seenSchemas.put(aSeenSchema, jsonType);
-            return javaTypeToUrn(aSeenSchema);
+            return javaTypeToUrn(aSeenSchema.toCanonical());
         }
         return null;
     }
@@ -105,11 +105,11 @@ public class SchemaGenerationContext {
         return seenSchemas.get(aSeenSchema);
     }
     public String getSeenSchemaUri(JavaType aSeenSchema) {
-        return (seenSchemas.containsKey(aSeenSchema)) ? javaTypeToUrn(aSeenSchema) : null;
+        return (seenSchemas.containsKey(aSeenSchema)) ? javaTypeToUrn(aSeenSchema.toCanonical()) : null;
     }
 
-    public String javaTypeToUrn(JavaType jt) {
-        return "urn:jsonschema:" + jt.toCanonical().replace('.', ':').replace('$', ':').replace("<", ":").replace(">", ":");
+    public static String javaTypeToUrn(String typeName) {
+        return "urn:jsonschema:" + typeName.replace('.', ':').replace('$', ':').replace("<", ":").replace(">", ":");
     }
 
 }
