@@ -248,6 +248,12 @@ will yield the following JSON schema:
 ```
 
 of course this will work without Mixins, key is to have JsonSubTypes annotation present.
+### Support For non numeric values
+By default for a double type the schema generator will create a schema with an equivalent "number" JSON schema type. That schema will fail JSON documents which have non-numeric numbers in them (NaN,Infinity etc). To enable schema generation for non-numeric values just set the corresponding mapper feature on:
+```java
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS);
+```
 
 ### JsonSchema Hypermedia support
 #### Generic support
