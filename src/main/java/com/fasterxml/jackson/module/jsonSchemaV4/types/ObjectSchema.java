@@ -225,6 +225,22 @@ public class ObjectSchema extends ContainerTypeSchema {
             //KNOWN ISSUE: pending https://github.com/FasterXML/jackson-databind/issues/43
             return null;
         }
+
+        public SchemaAdditionalProperties asSchemaAdditionalProperties(){
+            return null;
+        }
+
+        public NoAdditionalProperties asNoAdditionalProperties(){
+            return null;
+        }
+
+        public boolean isSchemaAdditionalProperties(){
+            return false;
+        }
+
+        public boolean isNoAdditionalProperties(){
+            return false;
+        }
     }
 
     public static abstract class Dependency {
@@ -255,6 +271,16 @@ public class ObjectSchema extends ContainerTypeSchema {
         }
 
         public static final NoAdditionalProperties instance = new NoAdditionalProperties();
+
+        @Override
+        public boolean isNoAdditionalProperties() {
+            return true;
+        }
+
+        @Override
+        public NoAdditionalProperties asNoAdditionalProperties() {
+            return this;
+        }
     }
 
 
@@ -279,6 +305,16 @@ public class ObjectSchema extends ContainerTypeSchema {
 
         public SchemaAdditionalProperties(JsonSchema jsonSchema) {
             this.jsonSchema = jsonSchema;
+        }
+
+        @Override
+        public boolean isSchemaAdditionalProperties() {
+            return true;
+        }
+
+        @Override
+        public SchemaAdditionalProperties asSchemaAdditionalProperties() {
+            return this;
         }
     }
 
