@@ -3,7 +3,6 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeId;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
@@ -11,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
+import com.fasterxml.jackson.databind.annotation.JsonTypeResolver;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
@@ -93,6 +93,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonTypeInfo(use = Id.CUSTOM, include = As.EXISTING_PROPERTY, property = "type",visible = true)
 @JsonTypeIdResolver(JsonSchemaIdResolver.class)
+@JsonTypeResolver(JsonSchemaTypeResolverBuilder.class)
 public abstract class JsonSchema {
     /**
      * This attribute defines the current URI of this schema (this attribute is

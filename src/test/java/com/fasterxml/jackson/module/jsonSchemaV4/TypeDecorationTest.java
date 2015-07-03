@@ -9,10 +9,13 @@ import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.toJson;
@@ -70,117 +73,103 @@ public class TypeDecorationTest {
         String TYPE_NAME = "JSONSubTypeBaseClassArrayMixIn[]";
 
     }
+    private JsonSchemaGenerator createGeneratorWithTyperFor(JsonTypeInfo.Id id) {
+       return createGeneratorWithTyperFor(new ObjectMapper(),id);
+    }
 
-    @Test
-    public void testTypeAsProperty() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-
+    private JsonSchemaGenerator createGeneratorWithTyperFor(ObjectMapper mapper,JsonTypeInfo.Id id) {
         TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
-        typer = typer.init(JsonTypeInfo.Id.NAME, null);
+        typer = typer.init(id, null);
         typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
         mapper.setDefaultTyping(typer);
 
-        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        return new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+    }
+
+    private void verifyTypeIsRestrictredForObjectSchema(JsonSchema schema,JsonTypeInfo.Id id,Set<String> typeNames) {
+        Set<String> required = schema.asObjectSchema().getRequired();
+        Assert.assertTrue("Type info should be required", required != null && required.contains(id.getDefaultPropertyName()));
+        Assert.assertTrue("Should have a type property", schema.asObjectSchema().getProperties().containsKey(id.getDefaultPropertyName()));
+        Assert.assertEquals("Miss match in allowed types", typeNames, schema.asObjectSchema().getProperties().get(id.getDefaultPropertyName()).asStringSchema().getEnums());
+    }
+
+
+    @Test
+    public void testTypeAsProperty() throws Exception {
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(JsonTypeInfo.Id.NAME);
         JsonSchema schema =generator.generateSchema(TypeParameterAsProperty.class);
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
-        Set<String> required = schema.asObjectSchema().getRequired();
-        Assert.assertTrue("type info should be required", required != null && required.contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("should have a type property", schema.asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("TypePropertyShouldBeRestricted", schema.asObjectSchema().getProperties().get(JsonTypeInfo.Id.NAME.getDefaultPropertyName()).asStringSchema().getEnums().contains(TypeParameterAsProperty.NAME));
+        verifyTypeIsRestrictredForObjectSchema(schema, JsonTypeInfo.Id.NAME, Sets.newHashSet(TypeParameterAsProperty.NAME));
     }
 
     @Test
     public void testTypeAsPropertyClass() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-
-        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
-        typer = typer.init(JsonTypeInfo.Id.CLASS, null);
-        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-        mapper.setDefaultTyping(typer);
-
-        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(JsonTypeInfo.Id.CLASS);
         JsonSchema schema =generator.generateSchema(TypeParameterAsClassProperty.class);
-
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
-        Set<String> required = schema.asObjectSchema().getRequired();
-        Assert.assertTrue("type info should be required", required != null && required.contains(JsonTypeInfo.Id.CLASS.getDefaultPropertyName()));
-        Assert.assertTrue("should have a type property", schema.asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.CLASS.getDefaultPropertyName()));
-        Assert.assertTrue("TypePropertyShouldBeRestricted", schema.asObjectSchema().getProperties().get(JsonTypeInfo.Id.CLASS.getDefaultPropertyName()).asStringSchema().getEnums().contains(TypeParameterAsClassProperty.class.getName()));
+        verifyTypeIsRestrictredForObjectSchema(schema, JsonTypeInfo.Id.CLASS, Sets.newHashSet(TypeParameterAsClassProperty.class.getName()));
     }
 
     @Test
     public void supportForMixIns() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
-
-        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
-        typer = typer.init(JsonTypeInfo.Id.NAME, null);
-        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-        mapper.setDefaultTyping(typer);
-
         mapper.addMixIn(MixInTest.class, MixIn.class);
-
-        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(mapper, JsonTypeInfo.Id.NAME);
         JsonSchema schema =generator.generateSchema(MixInTest.class);
+        System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
+        verifyTypeIsRestrictredForObjectSchema(schema, JsonTypeInfo.Id.NAME, Sets.newHashSet(MixIn.NAME));
+    }
+
+    @Test
+    public void forPolyMorphicObjectsArraysMixIn() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.addMixIn(JSONSubTypeBaseClass[].class, JSONSubTypeBaseClassArrayMixIn.class);
+
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(mapper, JsonTypeInfo.Id.NAME);
+        JsonSchema schema = generator.generateSchema(JSONSubTypeBaseClass[].class);
 
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
-        Set<String> required = schema.asObjectSchema().getRequired();
-        Assert.assertTrue("type info should be required", required != null && required.contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("should have a type property", schema.asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("TypePropertyShouldBeRestricted", schema.asObjectSchema().getProperties().get(JsonTypeInfo.Id.NAME.getDefaultPropertyName()).asStringSchema().getEnums().contains(MixIn.NAME));
+       // verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company", Sets.newHashSet("Company"));
+        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX, Sets.newHashSet("Company" ));
+        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Person", Sets.newHashSet("Person"));
+        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "BigCompany", Sets.newHashSet("BigCompany"));
+        JsonSchema[] arrayItems = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas();
+        Assert.assertNotNull("Type information is not encoded for Array type", arrayItems[0].asStringSchema());
+        Assert.assertEquals("Type is not restricted", Sets.newHashSet(JSONSubTypeBaseClassArrayMixIn.TYPE_NAME), arrayItems[0].asStringSchema().getEnums());
     }
 
     @Test
     public void forPolyMorphicObjects() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
-        typer = typer.init(JsonTypeInfo.Id.NAME, null);
-        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-        mapper.setDefaultTyping(typer);
-
-        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(JsonTypeInfo.Id.NAME);
         JsonSchema schema =generator.generateSchema(JSONSubTypeBaseClass.class);
-
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
-        Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX));
-        JsonSchema companySchema =schema.getDefinitions().get("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX);
-        Assert.assertTrue("No @Type Property", companySchema.asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("@Type property is not required", companySchema.asObjectSchema().getRequired().contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
+//        verifySchemaInDefinitions(schema,JsonTypeInfo.Id.NAME,"Company",Sets.newHashSet("Company"));
+        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX, Sets.newHashSet("Company"));
+        verifySchemaInDefinitions(schema,JsonTypeInfo.Id.NAME,"Person",Sets.newHashSet("Person"));
+        verifySchemaInDefinitions(schema,JsonTypeInfo.Id.NAME,"BigCompany",Sets.newHashSet("BigCompany"));
+
+
     }
 
-    @Test
-    public void forPolyMorphicObjectsArryas() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
-        typer = typer.init(JsonTypeInfo.Id.NAME, null);
-        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-        mapper.setDefaultTyping(typer);
-
-        mapper.addMixIn(JSONSubTypeBaseClass[].class, JSONSubTypeBaseClassArrayMixIn.class);
-
-        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
-        JsonSchema schema =generator.generateSchema(JSONSubTypeBaseClass[].class);
-
-        System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
-        JsonSchema[] arrayItems = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas();
-        Assert.assertTrue("Found no Company schema", schema.getDefinitions().containsKey("Company"));
-        JsonSchema companySchema = schema.getDefinitions().get("Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX);
-        Assert.assertTrue("No @Type Property",companySchema.asObjectSchema().getProperties().containsKey(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertTrue("@Type property is not required", companySchema.asObjectSchema().getRequired().contains(JsonTypeInfo.Id.NAME.getDefaultPropertyName()));
-        Assert.assertNotNull("Type information is not encoded for Array type", arrayItems[0].asStringSchema());
-        Assert.assertTrue("Type is not restricted", arrayItems[0].asStringSchema().getEnums().contains(JSONSubTypeBaseClassArrayMixIn.TYPE_NAME));
+    private void verifySchemaInDefinitions(JsonSchema schema,JsonTypeInfo.Id id,String name,Set<String> typeNames) {
+        Assert.assertNotNull("definitons should not be empty", schema.getDefinitions());
+        Assert.assertTrue("Found no" + name + "schema", schema.getDefinitions().containsKey(name));
+        JsonSchema definitionSchema =schema.getDefinitions().get(name);
+        ObjectSchema objectSchema = definitionSchema.asObjectSchema();
+        Assert.assertNotNull("Properties should not be empty", objectSchema.getProperties());
+        Assert.assertTrue("No @Type Property", objectSchema.getProperties().containsKey(id.getDefaultPropertyName()));
+        Assert.assertTrue("@Type property is not required", objectSchema.getRequired().contains(id.getDefaultPropertyName()));
+        JsonSchema typeRestriction = objectSchema.getProperties().get(id.getDefaultPropertyName());
+        Assert.assertTrue("Type restriction should be a string schema",typeRestriction.isStringSchema());
+        Assert.assertEquals("Mismatch in allowed types", typeNames, typeRestriction.asStringSchema().getEnums());
     }
+
+
 
     @Test
     public void objectDoesntHaveTypeRestriction() throws Exception {
-        ObjectMapper mapper = new ObjectMapper();
-        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
-        typer = typer.init(JsonTypeInfo.Id.NAME, null);
-        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-        mapper.setDefaultTyping(typer);
-
-        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(JsonTypeInfo.Id.NAME);
         JsonSchema schema =generator.generateSchema(Object.class);
-
         String json =toJson(schema, schema.getClass(), new ObjectMapper());
         Assert.assertEquals("{\"type\":[\"string\",\"number\",\"integer\",\"boolean\",\"object\",\"array\",\"null\"]}",json);
     }
@@ -204,13 +193,7 @@ public class TypeDecorationTest {
     }
     @Test
     public void testWrapperObjectDecoration()throws Exception{
-        ObjectMapper mapper = new ObjectMapper();
-        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL);
-        typer = typer.init(JsonTypeInfo.Id.NAME, null);
-        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
-        mapper.setDefaultTyping(typer);
-
-        JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(JsonTypeInfo.Id.NAME);
         JsonSchema schema =generator.generateSchema(ClassAsWrapperObject.class);
 
         String json =toJson(schema, schema.getClass(), new ObjectMapper());

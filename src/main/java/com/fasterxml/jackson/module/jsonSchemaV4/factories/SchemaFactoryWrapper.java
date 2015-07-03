@@ -1,6 +1,5 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,11 +13,10 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNullFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
-import com.fasterxml.jackson.module.jsonSchema.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.VisitorUtils;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.TypeDecorationUtils;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
@@ -30,10 +28,6 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author jphelan
@@ -170,7 +164,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     public JsonSchema finalSchema() {
         JsonSchema result = schema;
         if (originalType != null) {
-            result = new VisitorUtils(getProvider()).decorateWithTypeInformation(schema, originalType);
+            result = new TypeDecorationUtils(getProvider()).decorateWithTypeInformation(schema, originalType);
         }
         result = PolymorphicHandlingUtil.wrapNonNumericTypes(result);
         result = PolymorphicHandlingUtil.propagateDefinitionsUp(result);
