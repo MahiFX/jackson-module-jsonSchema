@@ -21,6 +21,10 @@ public class ReferenceSchema extends SimpleTypeSchema {
         this.type=referedSchemaType;
     }
 
+    public ReferenceSchema(){
+
+    }
+
     @Override
     @JsonIgnore
     public JSONType getType() {

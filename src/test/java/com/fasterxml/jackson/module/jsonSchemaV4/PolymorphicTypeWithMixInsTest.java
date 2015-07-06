@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObj
 import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
+import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,6 +16,7 @@ import java.lang.reflect.Type;
 
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.schema;
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.toJson;
+import static com.fasterxml.jackson.module.jsonSchemaV4.PolymorphicTypeTest.*;
 
 /**
  * Created by zoliszel on 09/06/2015.
@@ -28,7 +30,6 @@ public class PolymorphicTypeWithMixInsTest {
 
         mapper = new ObjectMapper();
         mapper.enableDefaultTyping();
-       // mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
         mapper.addMixIn(JSONSubTypeBaseClassWithMixIns.class, BaseMixIn.class);
         mapper.addMixIn(PersonMixIns.class, PersonMixIn.class);
         mapper.addMixIn(CompanyMixIns.class, CompanyMixIn.class);
@@ -42,19 +43,22 @@ public class PolymorphicTypeWithMixInsTest {
         JsonSchema schema = schema(type, mapper);
         String json = toJson(schema, schema.getClass(), new ObjectMapper());
         System.out.println(json);
-        Assert.assertNotNull("definitions should have been added", schema.getDefinitions());
-        Assert.assertEquals("there should be 4 sub schema", 4, schema.getDefinitions().entrySet().size());
-        Assert.assertTrue("Found no CompanyMixIn schema", schema.getDefinitions().containsKey(CompanyMixIn.TYPE_NAME));
-        Assert.assertTrue("Found no CompanyMixIn_1 schema", schema.getDefinitions().containsKey(CompanyMixIn.TYPE_NAME + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX));
-        Assert.assertTrue("Found no PersonMixIn schema", schema.getDefinitions().containsKey(PersonMixIn.TYPE_NAME));
-        Assert.assertTrue("Found no BigCompanyMixIn schema", schema.getDefinitions().containsKey(BigCompanyMixIn.TYPE_NAME));
-        Assert.assertTrue("Array items should be a one of schema", schema.asArraySchema().getItems().asSingleItems().getSchema() instanceof AnyOfSchema);
-        Assert.assertTrue("Any OF Schema Should Contain CompanyMixIn Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), PersonMixIn.TYPE_NAME));
-        Assert.assertTrue("Any OF Schema Should Contain PersonMixIn Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), CompanyMixIn.TYPE_NAME));
-        Assert.assertTrue("Any OF Schema Should Contain BigCompanyMixIn Reference", containsReference(((AnyOfSchema) schema.asArraySchema().getItems().asSingleItems().getSchema()).getAnyOf(), BigCompanyMixIn.TYPE_NAME));
+        verifyDefinitions(schema);
+        Assert.assertTrue("Resulting schema should be an array schema",schema.isArraySchema());
+        Assert.assertNotNull("Items should have a reference",schema.asArraySchema().getItems().asSingleItems().getSchema().get$ref());
+
+    }
+
+    private void verifyDefinitions(JsonSchema schema) {
+        containsDefinitions(schema, Sets.newHashSet(CompanyMixIn.TYPE_NAME,CompanyMixIn.TYPE_NAME + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX,PersonMixIn.TYPE_NAME,BigCompanyMixIn.TYPE_NAME,JSONSubTypeBaseClassWithMixIns.class.getSimpleName()));
+        JsonSchema jsonSubTypeBaseClassSchema = schema.getDefinitions().get(JSONSubTypeBaseClassWithMixIns.class.getSimpleName());
+        Assert.assertTrue("JsonSubTypeBaseClass should be polymorphic", jsonSubTypeBaseClassSchema.isPolymorhpicObjectSchema());
+        ReferenceSchema[] refSchema =  jsonSubTypeBaseClassSchema.asPolymorphicObjectSchema().getAnyOf();
+        verifyAnyOfContent(refSchema, Sets.newHashSet(PersonMixIn.TYPE_NAME, CompanyMixIn.TYPE_NAME, BigCompanyMixIn.TYPE_NAME));
         Assert.assertNotNull("Person schema should have required fields", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired());
         Assert.assertTrue("name property is required for person", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired().contains("name"));
         Assert.assertTrue("name property is required for person", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired().contains("dateOfBirth"));
+
     }
 
     @Test
@@ -63,23 +67,12 @@ public class PolymorphicTypeWithMixInsTest {
         JsonSchema schema = schema(type, mapper);
         String json = toJson(schema, schema.getClass(), new ObjectMapper());
         System.out.println(json);
-        Assert.assertNotNull("definitions should have been added", schema.getDefinitions());
-        Assert.assertEquals("there should be 4 sub schema", 4, schema.getDefinitions().entrySet().size());
-        Assert.assertTrue("Found no CompanyMixIn schema", schema.getDefinitions().containsKey(CompanyMixIn.TYPE_NAME));
-        Assert.assertTrue("Found no CompanyMixIn_1 schema", schema.getDefinitions().containsKey(CompanyMixIn.TYPE_NAME + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX));
-        Assert.assertTrue("Found no PersonMixIn schema", schema.getDefinitions().containsKey(PersonMixIn.TYPE_NAME));
-        Assert.assertTrue("Found no BigCompanyMixIn schema", schema.getDefinitions().containsKey(BigCompanyMixIn.TYPE_NAME));
-        Assert.assertTrue("Expected polymorphicObject", schema instanceof PolymorphicObjectSchema);
-        Assert.assertTrue("PolymorphicSchema should contain CompanyMixIn Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), PersonMixIn.TYPE_NAME));
-        Assert.assertTrue("PolymorphicSchema should contain PersonMixIn Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), CompanyMixIn.TYPE_NAME));
-        Assert.assertTrue("PolymorphicSchema should contain BigCompanyMixIn Reference", containsReference(((PolymorphicObjectSchema) schema).getAnyOf(), BigCompanyMixIn.TYPE_NAME));
-        Assert.assertTrue("name property is required for person", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired().contains("name"));
-        Assert.assertTrue("name property is required for person", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired().contains("dateOfBirth"));
-
-
+        verifyDefinitions(schema);
+        Assert.assertNotNull("Reference should not be null",schema.get$ref());
     }
 
 
+    /*
     private boolean containsReference(ReferenceSchema[] refSchemas, String name) {
         if (refSchemas == null) {
             return false;
@@ -94,5 +87,6 @@ public class PolymorphicTypeWithMixInsTest {
         }
         return false;
     }
+    */
 
 }

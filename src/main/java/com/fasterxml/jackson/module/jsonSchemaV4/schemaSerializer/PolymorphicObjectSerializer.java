@@ -30,8 +30,11 @@ public class PolymorphicObjectSerializer extends SimpleSerializers {
         Collection<PolymorphicHandlingUtil.NamedJavaType> subTypes = PolymorphicHandlingUtil.extractSubTypes(type, config,true);
         //subtype is inclusive with itself.
         //for container types there is no point to be polymorphic, the representation will be the same.
-        if (subTypes.size() > 1 && SchemaGenerationContext.get().addVisitedPolymorphicType(type) && !type.isContainerType()) {
-            return new PolyMorphicBeanSerializer();
+        if (subTypes.size() > 1 && !type.isContainerType()) {
+            SchemaGenerationContext context = SchemaGenerationContext.get();
+            if(!context.isVisitedAsPolymorphicType(type)){
+                return new PolyMorphicBeanSerializer();
+            }
         }
 
         return null;

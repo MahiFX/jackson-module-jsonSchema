@@ -64,9 +64,9 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
             throws JsonMappingException {
 
         // check if we've seen this sub-schema already and return a reference-schema if we have
-        String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(propertyTypeHint);
-        if (seenSchemaUri != null) {
-            return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(propertyTypeHint));
+        SchemaGenerationContext context = SchemaGenerationContext.get();
+        if(context.isVisited(propertyTypeHint,false)){
+            return context.getReferenceSchemaForVisitedType(propertyTypeHint);
         }
 
         SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());

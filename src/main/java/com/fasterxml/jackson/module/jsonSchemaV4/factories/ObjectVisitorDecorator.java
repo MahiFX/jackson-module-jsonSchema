@@ -11,17 +11,16 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 /**
  * @author cponomaryov
  */
-public class ObjectVisitorDecorator implements JsonObjectFormatVisitor, JsonSchemaProducer {
+public class ObjectVisitorDecorator implements JsonObjectFormatVisitor {
 
-    protected ObjectVisitor objectVisitor;
+    protected JsonObjectFormatVisitor objectVisitor;
 
-    public ObjectVisitorDecorator(ObjectVisitor objectVisitor) {
+    public ObjectVisitorDecorator(JsonObjectFormatVisitor objectVisitor) {
         this.objectVisitor = objectVisitor;
     }
 
-    @Override
     public JsonSchema getSchema() {
-        return objectVisitor.getSchema();
+        return objectVisitor instanceof JsonSchemaProducer ? ((JsonSchemaProducer) objectVisitor).getSchema() : null;
     }
 
     @Override

@@ -21,6 +21,7 @@ public class JSONValidatorIntegrationTest {
     @Before
     public void setup() {
         mapper = new ObjectMapper();
+
       //  mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
     }
 

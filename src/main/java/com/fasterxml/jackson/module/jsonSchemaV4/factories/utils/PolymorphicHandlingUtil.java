@@ -1,7 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories.utils;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,9 +74,7 @@ public class PolymorphicHandlingUtil {
 
     public static final String NUMBER_WITH_NON_NUMERIC_VALUES="___NUMBER_WTIH_NON_NUMERIC_VALUES___";
 
-
     private static final String DEFINITION_PREFIX = "#/definitions/";
-
 
     private static JsonSchema getNumberSchemaWithAllowedString(){
         NumberSchema numberSchema = new NumberSchema();
@@ -90,7 +87,7 @@ public class PolymorphicHandlingUtil {
         Map<String,JsonSchema> typesToWrap = new HashMap<String, JsonSchema>();
         typesToWrap.put(NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE,numberSchema);
         typesToWrap.put(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE,allowedStringValues);
-        PolymorphicObjectSchema wrappedSchema = constructPolymorphicSchema(typesToWrap);
+        PolymorphicObjectSchema wrappedSchema = constructPolymorphicSchema(typesToWrap, PolymorphicObjectSchema.Type.ONE_OF);
         wrappedSchema.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_VALUES));
 
         ReferenceSchema referenceSchema = new ReferenceSchema(DEFINITION_PREFIX +NUMBER_WITH_NON_NUMERIC_VALUES,wrappedSchema.getType());
@@ -99,7 +96,7 @@ public class PolymorphicHandlingUtil {
         return referenceSchema;
     }
 
-    public static PolymorphicObjectSchema constructPolymorphicSchema(Map<String, JsonSchema> typesToWrap) {
+    public static PolymorphicObjectSchema constructPolymorphicSchema(Map<String, JsonSchema> typesToWrap,PolymorphicObjectSchema.Type type) {
 
         PolymorphicObjectSchema wrappedSchema = new PolymorphicObjectSchema();
         wrappedSchema.setDefinitions(new HashMap<String, JsonSchema>());
@@ -107,7 +104,12 @@ public class PolymorphicHandlingUtil {
         Set<JsonFormatTypes> types = new HashSet<JsonFormatTypes>();
         for(Map.Entry<String,? extends JsonSchema> entry : typesToWrap.entrySet()){
             wrappedSchema.getDefinitions().put(entry.getKey(),entry.getValue());
-            referenceSchemas.add(new ReferenceSchema(DEFINITION_PREFIX+entry.getKey(),entry.getValue().getType()));
+            if(entry.getValue().isReferenceSchema()){
+                referenceSchemas.add(entry.getValue().asReferenceSchema());
+            }
+            else {
+                referenceSchemas.add(new ReferenceSchema(DEFINITION_PREFIX + entry.getKey(), entry.getValue().getType()));
+            }
             if(entry.getValue().getType().isSingleJSONType()){
                 types.add(JsonFormatTypes.forValue(entry.getValue().getType().asSingleJsonType().getFormatType()));
             }
@@ -122,26 +124,65 @@ public class PolymorphicHandlingUtil {
         else{
             wrappedSchema.setType(new JsonSchema.ArrayJsonType(types.toArray(new JsonFormatTypes[types.size()])));
         }
-        wrappedSchema.setOneOf(referenceSchemas.toArray(new ReferenceSchema[referenceSchemas.size()]));
+        ReferenceSchema[] referenceSchemaArray =referenceSchemas.toArray(new ReferenceSchema[referenceSchemas.size()]);
+        switch (type){
+            case ANY_OF:
+                wrappedSchema.setAnyOf(referenceSchemaArray);
+                break;
+            case ALL_OF:
+                wrappedSchema.setAllOf(referenceSchemaArray);
+                break;
+            case ONE_OF:
+                wrappedSchema.setOneOf(referenceSchemaArray);
+                break;
+            case NOT:
+                default:
+                    throw new IllegalArgumentException("Unknonw polymorphic object type " + type);
+        }
         return wrappedSchema;
     }
 
     private final SerializerProvider provider;
 
     public interface PolymorphiSchemaDefinition {
-        Map<String, JsonSchema> getDefinitions();
+        JsonSchema getPolymorphicObjectSchema();
 
-        ReferenceSchema[] getReferences();
+        String getOrigianlTypeName();
+
+        String getDefinitionsReference();
     }
 
+
     protected final JavaType originalType;
+
+    protected final String originalTypeName;
 
     private Collection<NamedJavaType> subTypes = Collections.emptyList();
 
     public PolymorphicHandlingUtil(JavaType originalType,SerializerProvider provider) {
         this.originalType = originalType;
         this.provider=provider;
-        processType(originalType);
+        if(provider!=null && provider.getConfig()!=null) {
+            Collection<NamedJavaType> namedTypes = extractSubTypes(originalType, getProvider().getConfig(), true);
+
+            if (!namedTypes.isEmpty()) {
+                subTypes = namedTypes;
+            }
+        }
+        originalTypeName=getOriginalTypeName();
+
+    }
+
+    private String getOriginalTypeName() {
+        for(NamedJavaType namedJavaType :  subTypes){
+            if(namedJavaType.getRawClass() == originalType.getRawClass()){
+                if(namedJavaType.hasName()){
+                    return namedJavaType.getName();
+                }
+                break;
+            }
+        }
+        return originalType.getRawClass().getSimpleName();
     }
 
     public static Collection<NamedJavaType> extractSubTypes(JavaType type, SerializationConfig config,boolean removeNonConcrete) {
@@ -165,7 +206,6 @@ public class PolymorphicHandlingUtil {
             if(addType){
                 result.add(new NamedJavaType(subType.hasName() ? subType.getName() : null,type.narrowBy(subType.getType())));
             }
-
         }
 
         return result;
@@ -174,29 +214,12 @@ public class PolymorphicHandlingUtil {
         return provider;
     }
 
-    private void processType(JavaType originalType) {
-        if (getProvider() == null) {
-            return;
-        }
-
-        if (getProvider().getConfig() == null) {
-            return;
-        }
-
-        Collection<NamedJavaType> namedTypes = extractSubTypes(originalType, getProvider().getConfig(),true);
-
-        if (!namedTypes.isEmpty()) {
-            subTypes = namedTypes;
-        }
-    }
 
 
-    public PolymorphiSchemaDefinition extractPolymophicTypes() {
+    public PolymorphiSchemaDefinition extractPolyMorphicObjectSchema(){
         if (!isPolymorphic()) {
             throw new IllegalArgumentException("Argument is not a polymorphic object (no JsonSubtype annotation (" + originalType.getRawClass().getSimpleName() + ")");
         }
-        SchemaGenerationContext.get().addSeenSchemaUriForPolymorphic(originalType);
-        final ReferenceSchema[] references = new ReferenceSchema[subTypes.size()];
         JsonSchema[] subSchemas = new JsonSchema[subTypes.size()];
         final Map<String, JsonSchema> definitions = new HashMap<String, JsonSchema>();
 
@@ -206,44 +229,40 @@ public class PolymorphicHandlingUtil {
             if (!namedType.hasName()) {
                 throw new IllegalArgumentException("No name associated with class " + namedType.getRawClass().getSimpleName() + " try using @JsonTypeName annotation");
             }
-            String subSchemaDefinitionName =getDefinitionReference(namedType);
             JsonSchema subSchema = schema(namedType.getJavaType());
             String subTypeName =namedType.getName();
 
             if(namedType.getRawClass() == originalType.getRawClass()){
-                subSchemaDefinitionName = subSchemaDefinitionName + POLYMORPHIC_TYPE_NAME_SUFFIX;
                 subTypeName = subTypeName + POLYMORPHIC_TYPE_NAME_SUFFIX;
             }
-
-            references[i] = new ReferenceSchema(subSchemaDefinitionName,subSchema.getType());
 
             subSchemas[i] = subSchema;
 
             definitions.put(subTypeName, subSchemas[i]);
         }
 
-        return new PolymorphiSchemaDefinition() {
+       final PolymorphicObjectSchema wrapperSchema =constructPolymorphicSchema(definitions,PolymorphicObjectSchema.Type.ANY_OF);
+        return new PolymorphiSchemaDefinition(){
+
             @Override
-            public Map<String, JsonSchema> getDefinitions() {
-                return definitions;
+            public JsonSchema getPolymorphicObjectSchema() {
+                return wrapperSchema;
             }
 
             @Override
-            public ReferenceSchema[] getReferences() {
-                return references;
+            public String getOrigianlTypeName() {
+                return originalTypeName;
+            }
+
+            @Override
+            public String getDefinitionsReference() {
+                return DEFINITION_PREFIX + originalTypeName;
             }
         };
     }
 
     public boolean isPolymorphic() {
-        return !SchemaGenerationContext.get().visitedPolymorphicType(originalType) && subTypes.size() > 1;
-    }
-
-    protected String getDefinitionReference(NamedJavaType namedType) {
-        if (!namedType.hasName()) {
-            throw new IllegalArgumentException("Class " + namedType.getClass().getSimpleName() + " has no JSON name. Try using @JsonTypeName annotation");
-        }
-        return DEFINITION_PREFIX + namedType.getName();
+        return subTypes.size() > 1;
     }
 
     public static JsonSchema propagateDefinitionsUp(JsonSchema node){
@@ -254,7 +273,6 @@ public class PolymorphicHandlingUtil {
         return node;
 
     }
-
     protected JsonSchema schema(Type t) {
         try {
             SchemaGenerationContext context = SchemaGenerationContext.get();
@@ -311,7 +329,6 @@ public class PolymorphicHandlingUtil {
         if(node.getDefinitions()!=null) {
             for(Map.Entry<String,JsonSchema> entry : node.getDefinitions().entrySet()){
                 mergeDefinitions(definitionsSoFar,extractDefinitions(entry.getValue(),definitionsSoFar));
-
             }
             mergeDefinitions(definitionsSoFar,node.getDefinitions());
             node.setDefinitions(null);

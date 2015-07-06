@@ -138,7 +138,7 @@ public class TypeDecorationUtils {
                     return types.values().iterator().next();
                 }
                 else{
-                    PolymorphicObjectSchema polymorphicObjectSchema=PolymorphicHandlingUtil.constructPolymorphicSchema(types);
+                    PolymorphicObjectSchema polymorphicObjectSchema=PolymorphicHandlingUtil.constructPolymorphicSchema(types,PolymorphicObjectSchema.Type.ANY_OF);
                     //TODO figur out id if needed
                     //polymorphicObjectSchema.setId();
                     return polymorphicObjectSchema;
