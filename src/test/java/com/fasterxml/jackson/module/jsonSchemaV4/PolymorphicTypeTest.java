@@ -5,8 +5,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.google.common.collect.Sets;

@@ -7,12 +7,8 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.TypeDecorationUtils;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
-
 
 
 public class ArrayVisitor extends JsonArrayFormatVisitor.Base

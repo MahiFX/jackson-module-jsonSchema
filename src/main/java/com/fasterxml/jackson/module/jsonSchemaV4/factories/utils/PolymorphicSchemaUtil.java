@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * Created by zoliszel on 16/06/2015.
  */
-public class PolymorphicHandlingUtil {
+public class PolymorphicSchemaUtil {
 
     public static class NamedJavaType{
         private final String name;
@@ -159,7 +159,7 @@ public class PolymorphicHandlingUtil {
 
     private Collection<NamedJavaType> subTypes = Collections.emptyList();
 
-    public PolymorphicHandlingUtil(JavaType originalType,SerializerProvider provider) {
+    public PolymorphicSchemaUtil(JavaType originalType, SerializerProvider provider) {
         this.originalType = originalType;
         this.provider=provider;
         if(provider!=null && provider.getConfig()!=null) {

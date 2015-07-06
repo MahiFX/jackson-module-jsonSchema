@@ -3,7 +3,7 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.github.fge.jackson.JsonNodeReader;
@@ -83,7 +83,7 @@ public class TestSchemaForNonNumericNumbers {
 
     private void verifyNonNumericSchema(JsonSchema schema) {
         Set<String> allowedNonStringValues = new HashSet<String>(Arrays.asList("INF","Infinity","-INF","-Infinity","NaN"));
-        JsonSchema referedSchema = schema.getDefinitions().get(PolymorphicHandlingUtil.NUMBER_WITH_NON_NUMERIC_VALUES);
+        JsonSchema referedSchema = schema.getDefinitions().get(PolymorphicSchemaUtil.NUMBER_WITH_NON_NUMERIC_VALUES);
         Assert.assertTrue("Refered schema should be polymorphic", referedSchema.isPolymorhpicObjectSchema());
         PolymorphicObjectSchema objectSchema  =referedSchema.asPolymorphicObjectSchema();
         Assert.assertNotNull("One of should not be empty", objectSchema.getOneOf());
@@ -93,8 +93,8 @@ public class TestSchemaForNonNumericNumbers {
         Assert.assertTrue("first should be reference schema",first.isReferenceSchema());
         Assert.assertTrue("second should be reference schema",second.isReferenceSchema());
 
-        JsonSchema numberSchema =  schema.getDefinitions().get(PolymorphicHandlingUtil.NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE);
-        JsonSchema stringSchema =  schema.getDefinitions().get(PolymorphicHandlingUtil.NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE);
+        JsonSchema numberSchema =  schema.getDefinitions().get(PolymorphicSchemaUtil.NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE);
+        JsonSchema stringSchema =  schema.getDefinitions().get(PolymorphicSchemaUtil.NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE);
         Assert.assertTrue("First should be number schema",numberSchema.isNumberSchema());
         Assert.assertTrue("Second should be string schema",stringSchema.isStringSchema());
         Set<String> enums = stringSchema.asStringSchema().getEnums();

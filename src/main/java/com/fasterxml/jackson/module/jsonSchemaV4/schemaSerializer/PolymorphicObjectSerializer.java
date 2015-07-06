@@ -9,17 +9,14 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.PolymorphicJsonFormatVisitorWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.PolymorphicObjectVisitor;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by zoliszel on 12/06/2015.
@@ -27,7 +24,7 @@ import java.util.Set;
 public class PolymorphicObjectSerializer extends SimpleSerializers {
 
     public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type, BeanDescription beanDesc) {
-        Collection<PolymorphicHandlingUtil.NamedJavaType> subTypes = PolymorphicHandlingUtil.extractSubTypes(type, config,true);
+        Collection<PolymorphicSchemaUtil.NamedJavaType> subTypes = PolymorphicSchemaUtil.extractSubTypes(type, config, true);
         //subtype is inclusive with itself.
         //for container types there is no point to be polymorphic, the representation will be the same.
         if (subTypes.size() > 1 && !type.isContainerType()) {
