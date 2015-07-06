@@ -1,24 +1,17 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories.utils;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonValueFormat;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.JsonSchemaFactory;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
-import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -138,7 +131,7 @@ public class TypeDecorationUtils {
                     return types.values().iterator().next();
                 }
                 else{
-                    PolymorphicObjectSchema polymorphicObjectSchema=PolymorphicHandlingUtil.constructPolymorphicSchema(types,PolymorphicObjectSchema.Type.ANY_OF);
+                    PolymorphicObjectSchema polymorphicObjectSchema= PolymorphicSchemaUtil.constructPolymorphicSchema(types, PolymorphicObjectSchema.Type.ANY_OF);
                     //TODO figur out id if needed
                     //polymorphicObjectSchema.setId();
                     return polymorphicObjectSchema;
@@ -174,7 +167,7 @@ public class TypeDecorationUtils {
         }
         Set<String> typeNames = new HashSet<String>();
         if(originalType.isContainerType()) {
-            for (PolymorphicHandlingUtil.NamedJavaType namedJavaType : PolymorphicHandlingUtil.extractSubTypes(originalType, provider.getConfig(), true)) {
+            for (PolymorphicSchemaUtil.NamedJavaType namedJavaType : PolymorphicSchemaUtil.extractSubTypes(originalType, provider.getConfig(), true)) {
                 String typeName = typeSerializer.getTypeIdResolver().idFromValueAndType(null, namedJavaType.getRawClass());
                 if (typeName != null) {
                     typeNames.add(typeName);

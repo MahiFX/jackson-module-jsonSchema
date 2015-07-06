@@ -5,17 +5,13 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
-import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
-import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.toJson;
@@ -130,7 +126,7 @@ public class TypeDecorationTest {
 
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
        // verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company", Sets.newHashSet("Company"));
-        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX, Sets.newHashSet("Company" ));
+        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company" + PolymorphicSchemaUtil.POLYMORPHIC_TYPE_NAME_SUFFIX, Sets.newHashSet("Company" ));
         verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Person", Sets.newHashSet("Person"));
         verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "BigCompany", Sets.newHashSet("BigCompany"));
         JsonSchema[] arrayItems = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas();
@@ -144,7 +140,7 @@ public class TypeDecorationTest {
         JsonSchema schema =generator.generateSchema(JSONSubTypeBaseClass.class);
         System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
 //        verifySchemaInDefinitions(schema,JsonTypeInfo.Id.NAME,"Company",Sets.newHashSet("Company"));
-        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company" + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX, Sets.newHashSet("Company"));
+        verifySchemaInDefinitions(schema, JsonTypeInfo.Id.NAME, "Company" + PolymorphicSchemaUtil.POLYMORPHIC_TYPE_NAME_SUFFIX, Sets.newHashSet("Company"));
         verifySchemaInDefinitions(schema,JsonTypeInfo.Id.NAME,"Person",Sets.newHashSet("Person"));
         verifySchemaInDefinitions(schema,JsonTypeInfo.Id.NAME,"BigCompany",Sets.newHashSet("BigCompany"));
 

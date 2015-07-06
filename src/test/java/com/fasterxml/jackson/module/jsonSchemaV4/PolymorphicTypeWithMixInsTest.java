@@ -1,11 +1,7 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
-import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.AnyOfSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
@@ -45,12 +41,12 @@ public class PolymorphicTypeWithMixInsTest {
         System.out.println(json);
         verifyDefinitions(schema);
         Assert.assertTrue("Resulting schema should be an array schema",schema.isArraySchema());
-        Assert.assertNotNull("Items should have a reference",schema.asArraySchema().getItems().asSingleItems().getSchema().get$ref());
+        Assert.assertNotNull("Items should have a reference", schema.asArraySchema().getItems().asSingleItems().getSchema().get$ref());
 
     }
 
     private void verifyDefinitions(JsonSchema schema) {
-        containsDefinitions(schema, Sets.newHashSet(CompanyMixIn.TYPE_NAME,CompanyMixIn.TYPE_NAME + PolymorphicHandlingUtil.POLYMORPHIC_TYPE_NAME_SUFFIX,PersonMixIn.TYPE_NAME,BigCompanyMixIn.TYPE_NAME,JSONSubTypeBaseClassWithMixIns.class.getSimpleName()));
+        containsDefinitions(schema, Sets.newHashSet(CompanyMixIn.TYPE_NAME,CompanyMixIn.TYPE_NAME + PolymorphicSchemaUtil.POLYMORPHIC_TYPE_NAME_SUFFIX,PersonMixIn.TYPE_NAME,BigCompanyMixIn.TYPE_NAME,JSONSubTypeBaseClassWithMixIns.class.getSimpleName()));
         JsonSchema jsonSubTypeBaseClassSchema = schema.getDefinitions().get(JSONSubTypeBaseClassWithMixIns.class.getSimpleName());
         Assert.assertTrue("JsonSubTypeBaseClass should be polymorphic", jsonSubTypeBaseClassSchema.isPolymorhpicObjectSchema());
         ReferenceSchema[] refSchema =  jsonSubTypeBaseClassSchema.asPolymorphicObjectSchema().getAnyOf();
@@ -68,7 +64,7 @@ public class PolymorphicTypeWithMixInsTest {
         String json = toJson(schema, schema.getClass(), new ObjectMapper());
         System.out.println(json);
         verifyDefinitions(schema);
-        Assert.assertNotNull("Reference should not be null",schema.get$ref());
+        Assert.assertNotNull("Reference should not be null", schema.get$ref());
     }
 
 

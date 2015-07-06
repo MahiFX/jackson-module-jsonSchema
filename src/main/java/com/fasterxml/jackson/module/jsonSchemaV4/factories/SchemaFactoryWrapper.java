@@ -16,7 +16,7 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicHandlingUtil;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.TypeDecorationUtils;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
@@ -25,7 +25,6 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 import java.io.IOException;
@@ -173,8 +172,8 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         if (originalType != null) {
             result = new TypeDecorationUtils(getProvider()).decorateWithTypeInformation(schema, originalType);
         }
-        result = PolymorphicHandlingUtil.wrapNonNumericTypes(result);
-        result = PolymorphicHandlingUtil.propagateDefinitionsUp(result);
+        result = PolymorphicSchemaUtil.wrapNonNumericTypes(result);
+        result = PolymorphicSchemaUtil.propagateDefinitionsUp(result);
 
         return result;
     }
