@@ -76,9 +76,9 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         }
 
         // check if we've seen this argument's sub-schema already and return a reference-schema if we have
-        String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(prop.getType());
-        if (seenSchemaUri != null) {
-            return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(prop.getType()));
+        SchemaGenerationContext context = SchemaGenerationContext.get();
+        if(context.isVisited(prop.getType(),false)){
+            return context.getReferenceSchemaForVisitedType(prop.getType());
         }
 
         SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
@@ -97,25 +97,15 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
     protected JsonSchema propertySchema(JsonFormatVisitable handler, JavaType propertyTypeHint)
             throws JsonMappingException {
         // check if we've seen this argument's sub-schema already and return a reference-schema if we have
-        String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(propertyTypeHint);
-        if (seenSchemaUri != null) {
-            return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(propertyTypeHint));
+        SchemaGenerationContext context = SchemaGenerationContext.get();
+        if(context.isVisited(propertyTypeHint,false)){
+            return context.getReferenceSchemaForVisitedType(propertyTypeHint);
         }
 
-        // do we need this here?(wouldn't the schema visiotr create a polymorphic object for us anyway?
-        PolymorphicHandlingUtil polymorphicHandlingUtil = new PolymorphicHandlingUtil(propertyTypeHint,getProvider());
-        if (polymorphicHandlingUtil.isPolymorphic()) {
-            PolymorphicHandlingUtil.PolymorphiSchemaDefinition polymorphiSchemaDefinition = polymorphicHandlingUtil.extractPolymophicTypes();
-            if (schema.getDefinitions() == null) {
-                schema.setDefinitions(new HashMap<String, JsonSchema>());
-            }
-            schema.getDefinitions().putAll(polymorphiSchemaDefinition.getDefinitions());
-            return new AnyOfSchema(polymorphiSchemaDefinition.getReferences());
-        } else {
-            SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
-            handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
-            return visitor.finalSchema();
-        }
+
+        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
+        handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
+        return visitor.finalSchema();
     }
 
     protected JsonSerializer<Object> getSer(BeanProperty prop)

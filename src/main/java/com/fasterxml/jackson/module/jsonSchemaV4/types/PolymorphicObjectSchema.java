@@ -11,6 +11,10 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
  */
 public class PolymorphicObjectSchema extends ObjectSchema {
 
+    public enum Type{
+        ANY_OF,ALL_OF,ONE_OF,NOT;
+
+    }
     public PolymorphicObjectSchema(){
 
     }

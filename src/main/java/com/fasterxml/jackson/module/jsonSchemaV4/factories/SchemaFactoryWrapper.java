@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonBooleanFormatVisitor;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNullFormatVisitor;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 import java.io.IOException;
@@ -129,6 +131,11 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
         SchemaGenerationContext context = SchemaGenerationContext.get();
+        if(context.isVisited(convertedType,true)){
+            schema=context.getReferenceSchemaForVisitedType(convertedType);
+            return new JsonObjectFormatVisitor.Base();
+        }
+
         ObjectSchema s = context.getSchemaProvider().objectSchema();
         schema = s;
         this.originalType = convertedType;
@@ -137,10 +144,10 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         }
 
         // give each object schema a reference id and keep track of the ones we've seen
-        String schemaUri = context.addSeenSchemaUri(convertedType, s.getType());
-        if (schemaUri != null) {
-            s.setId(schemaUri);
-        }
+        context.setVisitedAsNonPolymorphic(convertedType);
+        String id = context.setSchemaRefForNonPolymorphicType(convertedType);
+        s.setId(id);
+        context.setFormatTypeForVisitedType(convertedType,new JsonSchema.SingleJsonType(JsonFormatTypes.OBJECT));
         JsonObjectFormatVisitor visitor = context.getVisitorFactory().objectFormatVisitor(s ,convertedType);
         visitor.setProvider(getProvider());
         return visitor;

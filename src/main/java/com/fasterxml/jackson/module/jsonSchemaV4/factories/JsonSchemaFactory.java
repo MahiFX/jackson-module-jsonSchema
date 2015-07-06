@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
 public class JsonSchemaFactory {
@@ -43,5 +44,9 @@ public class JsonSchemaFactory {
         return new PolymorphicObjectSchema();
     }
 
-   // public NotSchema notSchema() { return new NotSchema(); }
+    public ReferenceSchema referenceSchema() {
+        return new ReferenceSchema();
+    }
+
+    // public NotSchema notSchema() { return new NotSchema(); }
 }

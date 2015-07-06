@@ -113,10 +113,11 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
         if (getProvider() instanceof DefaultSerializerProvider && targetSchema != void.class) {
             JavaType targetType = getProvider().constructType(targetSchema);
             try {
-                String seenSchemaUri = SchemaGenerationContext.get().getSeenSchemaUri(targetType);
-                if (seenSchemaUri != null) {
-                    return new ReferenceSchema(seenSchemaUri,SchemaGenerationContext.get().getJsonTypeForVisitedSchema(targetType));
+                SchemaGenerationContext context = SchemaGenerationContext.get();
+                if(context.isVisited(targetType,false)){
+                    return context.getReferenceSchemaForVisitedType(targetType);
                 }
+
 
                 HyperSchemaFactoryWrapper targetVisitor = new HyperSchemaFactoryWrapper();
 

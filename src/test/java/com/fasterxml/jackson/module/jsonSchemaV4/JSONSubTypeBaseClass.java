@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
         @JsonSubTypes.Type(Person.class),
         @JsonSubTypes.Type(Company.class)
 })
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class JSONSubTypeBaseClass {
 
     public static final String TYPE = "JSONSubTypeBaseClass";
@@ -54,7 +56,14 @@ class Company extends JSONSubTypeBaseClass {
     public Company() {
     }
 
-    Company company;
+
+    @JsonProperty
+    public Company sisterCompany;
+
+    @JsonProperty
+    public Company[] competitors;
+
+
     public Company(String name) {
         this.nameCompany = name;
     }
@@ -63,6 +72,8 @@ class Company extends JSONSubTypeBaseClass {
     @JsonProperty(required = true)
     @JsonPropertyDescription("This the name of the company")
     public String nameCompany;
+
+
 }
 
 @JsonTypeName(BigCompany.TYPE_NAME)

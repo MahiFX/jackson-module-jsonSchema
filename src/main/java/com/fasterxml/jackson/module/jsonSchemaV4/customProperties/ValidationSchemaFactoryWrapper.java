@@ -50,7 +50,7 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
-        return new ObjectVisitorDecorator((ObjectVisitor) super.expectObjectFormat(convertedType)) {
+        return new ObjectVisitorDecorator(super.expectObjectFormat(convertedType)) {
             private JsonSchema getPropertySchema(BeanProperty writer) {
                 return ((ObjectSchema) getSchema()).getProperties().get(writer.getName());
             }
@@ -58,13 +58,17 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
             @Override
             public void optionalProperty(BeanProperty writer) throws JsonMappingException {
                 super.optionalProperty(writer);
-                addValidationConstraints(getPropertySchema(writer), writer);
+                if(getSchema() instanceof ObjectSchema) {
+                    addValidationConstraints(getPropertySchema(writer), writer);
+                }
             }
 
             @Override
             public void property(BeanProperty writer) throws JsonMappingException {
                 super.property(writer);
-                addValidationConstraints(getPropertySchema(writer), writer);
+                if(getSchema() instanceof ObjectSchema) {
+                    addValidationConstraints(getPropertySchema(writer), writer);
+                }
             }
         };
     }
