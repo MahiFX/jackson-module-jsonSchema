@@ -313,6 +313,12 @@ public class PolymorphicSchemaUtil {
                     mergeDefinitions(definitionsSoFar,extractDefinitions(entry.getValue(), definitionsSoFar));
                 }
             }
+            if(node.asObjectSchema().getAdditionalProperties()!=null) {
+                if (node.asObjectSchema().getAdditionalProperties().isSchemaAdditionalProperties()) {
+                    JsonSchema additionalProps = node.asObjectSchema().getAdditionalProperties().asSchemaAdditionalProperties().getJsonSchema();
+                    mergeDefinitions(definitionsSoFar, extractDefinitions(additionalProps, definitionsSoFar));
+                }
+            }
         }
         else if(node.isArraySchema()){
             if(node.asArraySchema().getItems()!=null){
