@@ -3,12 +3,12 @@
   <parent>
     <groupId>com.fasterxml.jackson</groupId>
     <artifactId>jackson-parent</artifactId>
-    <version>2.5.1</version>
+    <version>2.6.0</version>
   </parent>
   <groupId>com.fasterxml.jackson.module</groupId>
   <artifactId>jackson-module-jsonSchema</artifactId>
   <name>jackson-module-jsonSchema</name>
-  <version>2.6.0-rc4-mahi</version>
+  <version>2.6.0-mahi</version>
   <packaging>bundle</packaging>
   <description>Add-on module for Jackson (http://jackson.codehaus.org) to support
 JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 generation.
@@ -33,9 +33,7 @@ JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 gene
         </developer>
   </developers>
   <properties>
-    <version.jackson.annotations>2.6.0-rc3</version.jackson.annotations>
-    <version.jackson.core>2.6.0-rc3</version.jackson.core>
-    <version.jackson.databind>2.6.0-rc4-mahi</version.jackson.databind>
+    <version.jackson>2.6.0</version.jackson>
     <osgi.export>${project.groupId}.jsonSchemaV4.*;${project.groupId}.jsonSchema.*</osgi.export>
   </properties>
 
@@ -43,17 +41,17 @@ JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 gene
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
-      <version>${version.jackson.annotations}</version>
+      <version>${version.jackson}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>${version.jackson.core}</version>
+      <version>${version.jackson}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${version.jackson.databind}</version>
+      <version>${version.jackson}</version>
     </dependency>
     <dependency>
       <groupId>javax.validation</groupId>

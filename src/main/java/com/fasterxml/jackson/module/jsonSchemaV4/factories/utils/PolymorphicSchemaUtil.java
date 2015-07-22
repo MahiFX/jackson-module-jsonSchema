@@ -72,7 +72,7 @@ public class PolymorphicSchemaUtil {
 
     public static final String NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE ="__ALLOWED_NON_NUMERIC_VALUES___";
 
-    public static final String NUMBER_WITH_NON_NUMERIC_VALUES="___NUMBER_WTIH_NON_NUMERIC_VALUES___";
+    public static final String NUMBER_WITH_NON_NUMERIC_VALUES="___NUMBER_WITH_NON_NUMERIC_VALUES___";
 
     private static final String DEFINITION_PREFIX = "#/definitions/";
 
