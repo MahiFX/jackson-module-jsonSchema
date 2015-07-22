@@ -153,7 +153,7 @@ public class TypeDecorationUtils {
 
         TypeSerializer typeSerializer = null;
         try {
-            typeSerializer = this.provider.getSerializerFactory().createTypeSerializer(provider.getConfig(),originalType);
+            typeSerializer =this.provider.findTypeSerializer(originalType);
         } catch (JsonMappingException e) {
             //Can't get serializer, just return...
             return TypeInfo.NOT_AVAILABLE;
