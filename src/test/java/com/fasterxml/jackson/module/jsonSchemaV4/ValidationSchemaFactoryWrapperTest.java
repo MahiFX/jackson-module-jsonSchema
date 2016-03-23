@@ -1,17 +1,11 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.customProperties.ValidationSchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.List;
 import java.util.Map;
 
@@ -320,6 +314,28 @@ public class ValidationSchemaFactoryWrapperTest extends SchemaTestBase {
             StringSchema stringSchema = propertySchema.asStringSchema();
             assertEquals(testCase[1], stringSchema.getPattern());
         }
+    }
+
+
+    static class ValidatorBean2{
+        @NotNull
+        @Min(0)
+        Double value;
+
+        public ValidatorBean2(Double v){
+            this.value=v;
+        }
+    }
+    public void testNotNull(){
+
+    }
+
+    public void testNotNaN(){
+
+    }
+
+    public void testDefaultValueIsAccepted(){
+
     }
 
 }

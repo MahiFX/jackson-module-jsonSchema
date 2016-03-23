@@ -102,7 +102,7 @@ public abstract class JsonSchema
      * current schema. When this attribute is defined, a validator SHOULD use
      * the schema referenced by the value's URI (if known and available) when
      * resolving Hyper JsonSchema (Section 6) links (Section 6.1).
-     * 
+     *
      * A validator MAY use this attribute's value to determine which version of
      * JSON JsonSchema the current schema is written in, and provide the appropriate
      * validation features and behavior. Therefore, it is RECOMMENDED that all
@@ -129,12 +129,12 @@ public abstract class JsonSchema
      * an array, in which case, the instance MUST be valid for all the schemas
      * in the array. A schema that extends another schema MAY define additional
      * attributes, constrain existing attributes, or add other constraints.
-     * 
+     *
      * Conceptually, the behavior of extends can be seen as validating an
      * instance against all constraints in the extending schema as well as the
      * extended schema(s). More optimized implementations that merge schemas are
      * possible, but are not required. An example of using "extends":
-     * 
+     *
      * { "description":"An adult", "properties":{"age":{"minimum": 21}},
      * "extends":"person" } { "description":"Extended schema",
      * "properties":{"deprecated":{"type": "boolean"}},
@@ -188,21 +188,21 @@ public abstract class JsonSchema
         return null;
     }
 
-    /**
-     * @deprecated Since 2.7
-     */
-    @Deprecated
-    public ContainerTypeSchema asContainerSchema() {
-        return asContainerTypeSchema();
-    }
+	/**
+	 * @deprecated Since 2.7
+	 */
+	@Deprecated
+	public ContainerTypeSchema asContainerSchema() {
+		return asContainerTypeSchema();
+	}
 
-    /**
+	/**
      * Attempt to return this JsonSchema as a {@link ContainerTypeSchema}
      * @return this as an ContainerTypeSchema if possible, or null otherwise
      *
-     * @since 2.7
-     */
-    public ContainerTypeSchema asContainerTypeSchema() {
+	 * @since 2.7
+	 */
+	public ContainerTypeSchema asContainerTypeSchema() {
         return null;
     }
 
@@ -262,21 +262,21 @@ public abstract class JsonSchema
         return null;
     }
 
-    /**
-     * @deprecated Since 2.7
-     */
-    @Deprecated
-    public ValueTypeSchema asValueSchemaSchema() {
-        return asValueTypeSchema();
-    }
+	/**
+	 * @deprecated Since 2.7
+	 */
+	@Deprecated
+	public ValueTypeSchema asValueSchemaSchema() {
+		return asValueTypeSchema();
+	}
 
-    /**
+	/**
      * Attempt to return this JsonSchema as a {@link ValueTypeSchema}
      * @return this as a ValueTypeSchema if possible, or null otherwise
      *
-     * @since 2.7
-     */
-    public ValueTypeSchema asValueTypeSchema() {
+	 * @since 2.7
+	 */
+	public ValueTypeSchema asValueTypeSchema() {
         return null;
     }
 
@@ -532,7 +532,7 @@ public abstract class JsonSchema
     /**
      * A utility method allowing to easily chain calls to equals() on members
      * without taking any risk regarding the ternary operator precedence.
-     *  
+     *
      * @return (object1 == null ? object2 == null : object1.equals(object2))
      */
     protected static boolean equals(Object object1, Object object2) {

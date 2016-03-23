@@ -69,7 +69,7 @@ JsonSchema personSchema = personVisitor.finalSchema();
 
 By default all default values for Link Description Object are ignored in the output (method = GET, enctype = application/json, mediaType = application/json), to enable default setIgnoreDefaults(true)
 
-#### Describing JSON hyper-schema
+### Describing JSON hyper-schema
 
 You can describe hyperlinks, using annotations @JsonHyperSchema & @Link
 
@@ -118,8 +118,8 @@ Would generate following values:
       }
     }
 
-
-## V4 Support - New!!!
+## More
+# V4 Support - New!!!
 ### Example Usage (from [TestGenerateJsonSchema](https://github.com/FasterXML/jackson-module-jsonSchema/blob/master/src/test/java/com/fasterxml/jackson/module/jsonSchemaV4/TestGenerateJsonSchema.java#L120))
 
 simply add a dependency (this is from my gradle config)

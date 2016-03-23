@@ -186,7 +186,7 @@ public class PolymorphicSchemaUtil {
     }
 
     public static Collection<NamedJavaType> extractSubTypes(JavaType type, SerializationConfig config,boolean removeNonConcrete) {
-        AnnotatedClass classWithoutSuperType = AnnotatedClass.constructWithoutSuperTypes(type.getRawClass(), config.getAnnotationIntrospector(), config);
+        AnnotatedClass classWithoutSuperType = AnnotatedClass.constructWithoutSuperTypes(type.getRawClass(), config);
         Collection<NamedType> subTypes = null;
         if (config.getSubtypeResolver() != null) {
 
@@ -204,7 +204,7 @@ public class PolymorphicSchemaUtil {
                 addType=false;
             }
             if(addType){
-                result.add(new NamedJavaType(subType.hasName() ? subType.getName() : null,type.narrowBy(subType.getType())));
+                result.add(new NamedJavaType(subType.hasName() ? subType.getName() : null,type.forcedNarrowBy(subType.getType())));
             }
         }
 
@@ -213,8 +213,6 @@ public class PolymorphicSchemaUtil {
     public SerializerProvider getProvider() {
         return provider;
     }
-
-
 
     public PolymorphiSchemaDefinition extractPolyMorphicObjectSchema(){
         if (!isPolymorphic()) {

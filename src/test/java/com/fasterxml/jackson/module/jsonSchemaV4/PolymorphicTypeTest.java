@@ -71,7 +71,7 @@ public class PolymorphicTypeTest {
 
     public static void verifyAnyOfContent(ReferenceSchema[] anyOf,Set<String> references) {
         for(String ref : references){
-            Assert.assertTrue("Any OF Schema Should Contain" + ref + " reference", containsReference(anyOf, ref));
+            Assert.assertTrue("Any OF Schema Should Contain " + ref + " reference", containsReference(anyOf, ref));
         }
     }
 
