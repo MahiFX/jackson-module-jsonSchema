@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,6 +28,18 @@ public class TypeDecorationTest {
     @Before
     public void setup() {
         mapper = new ObjectMapper();
+    }
+
+
+
+    @JsonTypeName(TypeParameterAsArray.NAME)
+    @JsonTypeInfo(include = JsonTypeInfo.As.WRAPPER_ARRAY, use = JsonTypeInfo.Id.NAME)
+    public static class TypeParameterAsArray {
+
+        public static final String NAME = "TypeParameterAsArray";
+
+        @JsonProperty()
+        public String thisIsAMember;
     }
 
     @JsonTypeName(TypeParameterAsProperty.NAME)
@@ -106,6 +120,25 @@ public class TypeDecorationTest {
         verifyTypeIsRestrictredForObjectSchema(schema, JsonTypeInfo.Id.CLASS, Sets.newHashSet(TypeParameterAsClassProperty.class.getName()));
     }
 
+
+    @Test
+    public void testTypeAsWrapperArray() throws Exception {
+        JsonSchemaGenerator generator = createGeneratorWithTyperFor(JsonTypeInfo.Id.CLASS);
+        JsonSchema schema =generator.generateSchema(TypeParameterAsArray.class);
+        System.out.println(toJson(schema, schema.getClass(), new ObjectMapper()));
+        Assert.assertTrue("Expecting array schema", schema instanceof ArraySchema);
+        ArraySchema arraySchema = (ArraySchema) schema;
+
+        Assert.assertEquals("Expecting min items to be 2",(Integer)2 ,arraySchema.getMinItems());
+        Assert.assertEquals("Expecting max items to be 2", (Integer) 2, arraySchema.getMaxItems());
+        Assert.assertEquals("Expecting exactly 2 items in the array", 2, arraySchema.getItems().asArrayItems().getJsonSchemas().length);
+
+        Assert.assertTrue("First item should be a StringSchema", arraySchema.getItems().asArrayItems().getJsonSchemas()[0] instanceof StringSchema);
+
+        StringSchema firstItem = (StringSchema) arraySchema.getItems().asArrayItems().getJsonSchemas()[0];
+        Assert.assertEquals("TypeName mismatch",TypeParameterAsArray.NAME,firstItem.getEnums().iterator().next());
+        Assert.assertTrue("Second item should be am ObjectSchema", arraySchema.getItems().asArrayItems().getJsonSchemas()[1] instanceof ObjectSchema);
+    }
     @Test
     public void supportForMixIns() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -194,6 +227,5 @@ public class TypeDecorationTest {
 
         String json =toJson(schema, schema.getClass(), new ObjectMapper());
         Assert.assertEquals("{\"type\":\"object\",\"properties\":{\"ClassAsWrapperObject\":{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TypeDecorationTest:ClassAsWrapperObject\",\"type\":\"object\",\"properties\":{\"someProperty\":{\"type\":\"string\"}}}},\"required\":[\"ClassAsWrapperObject\"]}",json);
-
     }
 }
