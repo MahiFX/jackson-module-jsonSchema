@@ -103,18 +103,22 @@ public class PolymorphicSchemaUtil {
         List<ReferenceSchema> referenceSchemas = new ArrayList<ReferenceSchema>();
         Set<JsonFormatTypes> types = new HashSet<JsonFormatTypes>();
         for(Map.Entry<String,? extends JsonSchema> entry : typesToWrap.entrySet()){
-            wrappedSchema.getDefinitions().put(entry.getKey(),entry.getValue());
-            if(entry.getValue().isReferenceSchema()){
-                referenceSchemas.add(entry.getValue().asReferenceSchema());
+            final JsonSchema schema = entry.getValue();
+            if(schema == null) {
+                throw new IllegalStateException("No schema for type [" + entry.getKey() + "]! All given types: " + typesToWrap);
+            }
+            wrappedSchema.getDefinitions().put(entry.getKey(), schema);
+            if(schema.isReferenceSchema()){
+                referenceSchemas.add(schema.asReferenceSchema());
             }
             else {
-                referenceSchemas.add(new ReferenceSchema(DEFINITION_PREFIX + entry.getKey(), entry.getValue().getType()));
+                referenceSchemas.add(new ReferenceSchema(DEFINITION_PREFIX + entry.getKey(), schema.getType()));
             }
-            if(entry.getValue().getType().isSingleJSONType()){
-                types.add(JsonFormatTypes.forValue(entry.getValue().getType().asSingleJsonType().getFormatType()));
+            if(schema.getType().isSingleJSONType()){
+                types.add(JsonFormatTypes.forValue(schema.getType().asSingleJsonType().getFormatType()));
             }
-            else if(entry.getValue().getType().isArrayJSONType()){
-                types.addAll(Arrays.asList(entry.getValue().getType().asArrayJsonType().getFormatTypes()));
+            else if(schema.getType().isArrayJSONType()){
+                types.addAll(Arrays.asList(schema.getType().asArrayJsonType().getFormatTypes()));
             }
         }
 
@@ -216,7 +220,7 @@ public class PolymorphicSchemaUtil {
 
 
 
-    public PolymorphiSchemaDefinition extractPolyMorphicObjectSchema(){
+    public PolymorphiSchemaDefinition extractPolyMorphicObjectSchema() throws JsonMappingException {
         if (!isPolymorphic()) {
             throw new IllegalArgumentException("Argument is not a polymorphic object (no JsonSubtype annotation (" + originalType.getRawClass().getSimpleName() + ")");
         }
@@ -273,17 +277,12 @@ public class PolymorphicSchemaUtil {
         return node;
 
     }
-    protected JsonSchema schema(Type t) {
-        try {
-            SchemaGenerationContext context = SchemaGenerationContext.get();
-            ObjectMapper mapper = context.getMapper().copy();
-            SchemaFactoryWrapper visitor = context.getNewSchemaFactoryWrapper(null);
-            mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
-            return visitor.finalSchema();
-        } catch (JsonMappingException e) {
-            //TODO throw and sort out exception
-            return null;
-        }
+    protected JsonSchema schema(Type t) throws JsonMappingException {
+        SchemaGenerationContext context = SchemaGenerationContext.get();
+        ObjectMapper mapper = context.getMapper().copy();
+        SchemaFactoryWrapper visitor = context.getNewSchemaFactoryWrapper(null);
+        mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
+        return visitor.finalSchema();
     }
 
     public static JsonSchema wrapNonNumericTypes(JsonSchema originalSchema) {
