@@ -1,6 +1,7 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
@@ -31,7 +32,7 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
         return null;
     }
 
-    public void visitPolymorphicObject(JavaType type) {
+    public void visitPolymorphicObject(JavaType type) throws JsonMappingException {
 
         SchemaGenerationContext context = SchemaGenerationContext.get();
 
@@ -43,7 +44,7 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
 
         PolymorphicSchemaUtil handlingUtil = new PolymorphicSchemaUtil(type,this.provider);
         if (handlingUtil.isPolymorphic()) {
-            PolymorphicSchemaUtil.PolymorphiSchemaDefinition def =handlingUtil.extractPolyMorphicObjectSchema();
+            PolymorphicSchemaUtil.PolymorphiSchemaDefinition def = handlingUtil.extractPolyMorphicObjectSchema();
             if (schema.getDefinitions() == null) {
                 schema.setDefinitions(new HashMap<String, JsonSchema>());
             }
