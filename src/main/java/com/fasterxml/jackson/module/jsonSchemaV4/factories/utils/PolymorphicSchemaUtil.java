@@ -103,18 +103,20 @@ public class PolymorphicSchemaUtil {
         List<ReferenceSchema> referenceSchemas = new ArrayList<ReferenceSchema>();
         Set<JsonFormatTypes> types = new HashSet<JsonFormatTypes>();
         for(Map.Entry<String,? extends JsonSchema> entry : typesToWrap.entrySet()){
-            wrappedSchema.getDefinitions().put(entry.getKey(),entry.getValue());
-            if(entry.getValue().isReferenceSchema()){
-                referenceSchemas.add(entry.getValue().asReferenceSchema());
+            final JsonSchema schema = entry.getValue();
+            if(schema == null) {
+                throw new IllegalStateException("Type to wrap [" + entry.getKey() + "] is not associated with a schema! (All types: " + typesToWrap + ")");
             }
-            else {
-                referenceSchemas.add(new ReferenceSchema(DEFINITION_PREFIX + entry.getKey(), entry.getValue().getType()));
+            wrappedSchema.getDefinitions().put(entry.getKey(), schema);
+            if(schema.isReferenceSchema()){
+                referenceSchemas.add(schema.asReferenceSchema());
+            } else {
+                referenceSchemas.add(new ReferenceSchema(DEFINITION_PREFIX + entry.getKey(), schema.getType()));
             }
-            if(entry.getValue().getType().isSingleJSONType()){
-                types.add(JsonFormatTypes.forValue(entry.getValue().getType().asSingleJsonType().getFormatType()));
-            }
-            else if(entry.getValue().getType().isArrayJSONType()){
-                types.addAll(Arrays.asList(entry.getValue().getType().asArrayJsonType().getFormatTypes()));
+            if(schema.getType().isSingleJSONType()){
+                types.add(JsonFormatTypes.forValue(schema.getType().asSingleJsonType().getFormatType()));
+            } else if(schema.getType().isArrayJSONType()){
+                types.addAll(Arrays.asList(schema.getType().asArrayJsonType().getFormatTypes()));
             }
         }
 
