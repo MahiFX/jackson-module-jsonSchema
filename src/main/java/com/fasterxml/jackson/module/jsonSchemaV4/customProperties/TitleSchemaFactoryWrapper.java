@@ -1,9 +1,11 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.customProperties;
 
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ArrayVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ObjectVisitor;
@@ -29,7 +31,9 @@ public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
 
     ;
 
-    private TitleSchemaFactoryWrapper(){}
+    private TitleSchemaFactoryWrapper() {
+    }
+
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
         ObjectVisitor visitor = ((ObjectVisitor) super.expectObjectFormat(convertedType));
@@ -60,6 +64,16 @@ public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
         if (!schema.isSimpleTypeSchema()) {
             throw new RuntimeException("given non simple type schema: " + schema.getType());
         }
+        try {
+            TypeSerializer typeSerializer = getProvider().findTypeSerializer(type);
+            if (typeSerializer != null) {
+                schema.asSimpleTypeSchema().setTitle(typeSerializer.getTypeIdResolver().idFromBaseType());
+                return;
+            }
+        } catch (JsonMappingException ignored) {
+
+        }
         schema.asSimpleTypeSchema().setTitle(type.getGenericSignature());
+
     }
 }

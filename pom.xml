@@ -8,7 +8,7 @@
   <groupId>com.fasterxml.jackson.module</groupId>
   <artifactId>jackson-module-jsonSchema</artifactId>
   <name>jackson-module-jsonSchema</name>
-  <version>2.6.1-mahi2</version>
+  <version>2.6.7-mahi</version>
   <packaging>bundle</packaging>
   <description>Add-on module for Jackson (http://jackson.codehaus.org) to support
 JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 generation.
@@ -33,7 +33,7 @@ JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 gene
         </developer>
   </developers>
   <properties>
-    <version.jackson>2.6.0</version.jackson>
+    <version.jackson>2.6.7</version.jackson>
     <osgi.export>${project.groupId}.jsonSchemaV4.*;${project.groupId}.jsonSchema.*</osgi.export>
   </properties>
 
@@ -100,6 +100,14 @@ JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 gene
           </execution>
         </executions>
       </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>8</source>
+                <target>8</target>
+            </configuration>
+        </plugin>
     </plugins>
   </build>
 

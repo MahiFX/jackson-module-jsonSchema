@@ -29,8 +29,8 @@ import java.util.TreeSet;
  */
 public class TypeDecorationPolymorphicContainerTest {
 
-    public static final HashSet<String> MAP_TYPES = Sets.newHashSet("HashMap", "TreeMap", "LinkedHashMap");
-    public static final HashSet<String> SET_TYPES = Sets.newHashSet("HashSet", "LinkedHashSet", "TreeSet");
+    public static final HashSet<String> MAP_TYPES = Sets.newHashSet("HashMap", "Map", "TreeMap", "LinkedHashMap");
+    public static final HashSet<String> SET_TYPES = Sets.newHashSet("HashSet", "Set", "LinkedHashSet", "TreeSet");
 
     //    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.WRAPPER_ARRAY)
     @JsonSubTypes({
@@ -112,7 +112,7 @@ public class TypeDecorationPolymorphicContainerTest {
             JsonSchema schema = unitUnderTest.generateSchema(new TypeReference<List<String>>() {
             }.getType());
             System.out.println(unitUnderTest.schemaAsString(schema));
-            verifyGeneratedAsWrapperArraySchema(Sets.newHashSet("ArrayList"), schema, true);
+            verifyGeneratedAsWrapperArraySchema(Sets.newHashSet("ArrayList", "List"), schema, true);
         }
     }
 
@@ -160,8 +160,10 @@ public class TypeDecorationPolymorphicContainerTest {
             }.getType());
             System.out.println(unitUnderTest.schemaAsString(schema));
             Assert.assertTrue("expecting object schema",schema.isObjectSchema());
-            Assert.assertNotNull("Should have properties",schema.asObjectSchema().getProperties());
-            verifyArrayContentType(schema.asObjectSchema().getProperties().get("ArrayList"));
+            Map<String, JsonSchema> properties = schema.asObjectSchema().getDefinitions();
+            Assert.assertNotNull("Should have properties", properties);
+            JsonSchema arrayListDefn = properties.get("ArrayList");
+            verifyArrayContentType(arrayListDefn.asObjectSchema().getProperties().get("ArrayList"));
         }
     }
 

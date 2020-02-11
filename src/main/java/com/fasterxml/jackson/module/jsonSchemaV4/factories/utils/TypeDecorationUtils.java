@@ -167,7 +167,7 @@ public class TypeDecorationUtils {
         }
         Set<String> typeNames = new HashSet<String>();
         if(originalType.isContainerType()) {
-            for (PolymorphicSchemaUtil.NamedJavaType namedJavaType : PolymorphicSchemaUtil.extractSubTypes(originalType, provider.getConfig(), true)) {
+            for (PolymorphicSchemaUtil.NamedJavaType namedJavaType : PolymorphicSchemaUtil.extractSubTypes(originalType, provider.getConfig(), false)) {
                 String typeName = typeSerializer.getTypeIdResolver().idFromValueAndType(null, namedJavaType.getRawClass());
                 if (typeName != null) {
                     typeNames.add(typeName);
