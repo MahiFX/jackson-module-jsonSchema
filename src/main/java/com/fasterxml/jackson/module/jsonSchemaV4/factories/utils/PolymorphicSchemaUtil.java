@@ -217,14 +217,15 @@ public class PolymorphicSchemaUtil {
             JsonSchema subSchema = schema(subJavaType);
             String subTypeName = namedType.getName();
 
-            if (namedType.getRawClass() == originalType.getRawClass()) {
-                subTypeName = subTypeName + POLYMORPHIC_TYPE_NAME_SUFFIX;
-            }
-
             TypeSerializer typeSerializer = getProvider().findTypeSerializer(subJavaType);
             if (typeSerializer != null) {
                 subTypeName = typeSerializer.getTypeIdResolver().idFromBaseType();
             }
+
+            if (namedType.getRawClass() == originalType.getRawClass()) {
+                subTypeName = subTypeName + POLYMORPHIC_TYPE_NAME_SUFFIX;
+            }
+
 
             subSchemas[i] = subSchema;
 
