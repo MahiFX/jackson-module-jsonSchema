@@ -47,7 +47,7 @@ public class PolymorphicSchemaUtil {
         }
     }
 
-    private static final Set<String> ALLOWED_NON_NUMERIC_VALUES = new HashSet<String>(Arrays.asList("INF", "Infinity", "-INF", "-Infinity", "NaN"));
+    private static final Set<String> ALLOWED_NON_NUMERIC_VALUES = new HashSet<>(Arrays.asList("INF", "Infinity", "-INF", "-Infinity", "NaN"));
 
     public static final String POLYMORPHIC_TYPE_NAME_SUFFIX = "_1";
 
@@ -67,14 +67,14 @@ public class PolymorphicSchemaUtil {
         allowedStringValues.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE));
         allowedStringValues.setEnums(ALLOWED_NON_NUMERIC_VALUES);
 
-        Map<String, JsonSchema> typesToWrap = new HashMap<String, JsonSchema>();
+        Map<String, JsonSchema> typesToWrap = new HashMap<>();
         typesToWrap.put(NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE, numberSchema);
         typesToWrap.put(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE, allowedStringValues);
         PolymorphicObjectSchema wrappedSchema = constructPolymorphicSchema(typesToWrap, PolymorphicObjectSchema.Type.ONE_OF);
         wrappedSchema.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_VALUES));
 
         ReferenceSchema referenceSchema = new ReferenceSchema(DEFINITION_PREFIX + NUMBER_WITH_NON_NUMERIC_VALUES, wrappedSchema.getType());
-        referenceSchema.setDefinitions(new HashMap<String, JsonSchema>());
+        referenceSchema.setDefinitions(new HashMap<>());
         referenceSchema.getDefinitions().put(NUMBER_WITH_NON_NUMERIC_VALUES, wrappedSchema);
         return referenceSchema;
     }
@@ -82,9 +82,9 @@ public class PolymorphicSchemaUtil {
     public static PolymorphicObjectSchema constructPolymorphicSchema(Map<String, JsonSchema> typesToWrap, PolymorphicObjectSchema.Type type) {
 
         PolymorphicObjectSchema wrappedSchema = new PolymorphicObjectSchema();
-        wrappedSchema.setDefinitions(new HashMap<String, JsonSchema>());
-        List<ReferenceSchema> referenceSchemas = new ArrayList<ReferenceSchema>();
-        Set<JsonFormatTypes> types = new HashSet<JsonFormatTypes>();
+        wrappedSchema.setDefinitions(new HashMap<>());
+        List<ReferenceSchema> referenceSchemas = new ArrayList<>();
+        Set<JsonFormatTypes> types = new HashSet<>();
         for (Map.Entry<String, ? extends JsonSchema> entry : typesToWrap.entrySet()) {
             final JsonSchema schema = entry.getValue();
             if (schema == null) {
@@ -106,9 +106,9 @@ public class PolymorphicSchemaUtil {
         if (types.size() == 1) {
             wrappedSchema.setType(new JsonSchema.SingleJsonType(types.iterator().next()));
         } else {
-            wrappedSchema.setType(new JsonSchema.ArrayJsonType(types.toArray(new JsonFormatTypes[types.size()])));
+            wrappedSchema.setType(new JsonSchema.ArrayJsonType(types.toArray(new JsonFormatTypes[0])));
         }
-        ReferenceSchema[] referenceSchemaArray = referenceSchemas.toArray(new ReferenceSchema[referenceSchemas.size()]);
+        ReferenceSchema[] referenceSchemaArray = referenceSchemas.toArray(new ReferenceSchema[0]);
         switch (type) {
             case ANY_OF:
                 wrappedSchema.setAnyOf(referenceSchemaArray);
@@ -171,13 +171,15 @@ public class PolymorphicSchemaUtil {
 
     public static Collection<NamedJavaType> extractSubTypes(JavaType type, SerializationConfig config, boolean removeNonConcrete) {
         AnnotatedClass classWithoutSuperType = AnnotatedClass.constructWithoutSuperTypes(type.getRawClass(), config.getAnnotationIntrospector(), config);
-        Collection<NamedType> subTypes = null;
+        Collection<NamedType> subTypes;
         if (config.getSubtypeResolver() != null) {
 
-            subTypes = new ArrayList<NamedType>(config.getSubtypeResolver().collectAndResolveSubtypes(classWithoutSuperType, config, config.getAnnotationIntrospector()));
+            subTypes = new ArrayList<>(config.getSubtypeResolver().collectAndResolveSubtypes(classWithoutSuperType, config, config.getAnnotationIntrospector()));
+        } else {
+            return Collections.emptyList();
         }
 
-        List<NamedJavaType> result = new ArrayList<NamedJavaType>();
+        List<NamedJavaType> result = new ArrayList<>();
         for (NamedType subType : subTypes) {
             //remove abstract classes/intefaces when requested, should have full type information in subclasses
             boolean addType = true;
@@ -205,7 +207,7 @@ public class PolymorphicSchemaUtil {
             throw new IllegalArgumentException("Argument is not a polymorphic object (no JsonSubtype annotation (" + originalType.getRawClass().getSimpleName() + ")");
         }
         JsonSchema[] subSchemas = new JsonSchema[subTypes.size()];
-        final Map<String, JsonSchema> definitions = new HashMap<String, JsonSchema>();
+        final Map<String, JsonSchema> definitions = new HashMap<>();
 
         Iterator<NamedJavaType> it = subTypes.iterator();
         for (int i = 0; i < subTypes.size(); ++i) {
@@ -257,7 +259,7 @@ public class PolymorphicSchemaUtil {
     }
 
     public static JsonSchema propagateDefinitionsUp(JsonSchema node) {
-        Map<String, JsonSchema> allDefinitions = extractDefinitions(node, new HashMap<String, JsonSchema>());
+        Map<String, JsonSchema> allDefinitions = extractDefinitions(node, new HashMap<>());
         if (!allDefinitions.isEmpty()) {
             node.setDefinitions(allDefinitions);
         }
