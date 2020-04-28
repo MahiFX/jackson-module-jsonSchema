@@ -1,8 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.types;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 
@@ -11,17 +9,18 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
  */
 public class PolymorphicObjectSchema extends ObjectSchema {
 
-    public enum Type{
-        ANY_OF,ALL_OF,ONE_OF,NOT;
+    public enum Type {
+        ANY_OF, ALL_OF, ONE_OF, NOT;
 
     }
-    public PolymorphicObjectSchema(){
+
+    public PolymorphicObjectSchema() {
 
     }
 
     @Override
     public JsonSchema.JSONType getType() {
-       return type; //just return it for now;
+        return type; //just return it for now;
     }
 
     @JsonProperty("anyOf")
@@ -37,10 +36,9 @@ public class PolymorphicObjectSchema extends ObjectSchema {
     private ReferenceSchema not;
 
     public void setTypes(JsonFormatTypes[] types) {
-        if(types.length==1) {
+        if (types.length == 1) {
             super.setType(new SingleJsonType(types[0]));
-        }
-        else{
+        } else {
             super.setType(new ArrayJsonType(types));
         }
     }

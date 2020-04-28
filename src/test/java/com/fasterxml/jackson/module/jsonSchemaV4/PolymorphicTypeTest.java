@@ -124,7 +124,7 @@ public class PolymorphicTypeTest {
         JSONSubTypeBaseClass[] media = loadJson(PolymorphicTypeTest.class.getResourceAsStream("/polymorphic.json"), JSONSubTypeBaseClass[].class, mapper);
         Assert.assertEquals("mismatch in array size", 3, media.length);
         Assert.assertTrue("First item is not a person", media[0] instanceof Person);
-        Assert.assertTrue("Second item is not a Company", media[1] instanceof Company);
+        Assert.assertTrue("Second item is not a Company", media[1] instanceof CompanyObfuscated);
         Assert.assertTrue("Third item is not a BigCompany", media[2] instanceof BigCompany);
     }
 

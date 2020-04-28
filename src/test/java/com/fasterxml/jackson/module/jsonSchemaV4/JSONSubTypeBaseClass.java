@@ -11,11 +11,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 /**
  * Created by zoliszel on 09/06/2015.
  */
-//@JsonTypeName(JSONSubTypeBaseClass.TYPE)
+@JsonTypeName(JSONSubTypeBaseClass.TYPE)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
         @JsonSubTypes.Type(Person.class),
-        @JsonSubTypes.Type(Company.class)
+        @JsonSubTypes.Type(CompanyObfuscated.class)
 })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class JSONSubTypeBaseClass {
@@ -48,23 +48,23 @@ class Person extends JSONSubTypeBaseClass {
 @JsonSubTypes({
         @JsonSubTypes.Type(BigCompany.class),
 })
-@JsonTypeName(Company.TYPE_NAME)
-class Company extends JSONSubTypeBaseClass {
+@JsonTypeName(CompanyObfuscated.TYPE_NAME)
+class CompanyObfuscated extends JSONSubTypeBaseClass {
 
     public static final String TYPE_NAME = "Company";
 
-    public Company() {
+    public CompanyObfuscated() {
     }
 
 
     @JsonProperty
-    public Company sisterCompany;
+    public CompanyObfuscated sisterCompany;
 
     @JsonProperty
-    public Company[] competitors;
+    public CompanyObfuscated[] competitors;
 
 
-    public Company(String name) {
+    public CompanyObfuscated(String name) {
         this.nameCompany = name;
     }
 
@@ -77,7 +77,7 @@ class Company extends JSONSubTypeBaseClass {
 }
 
 @JsonTypeName(BigCompany.TYPE_NAME)
-class BigCompany extends Company {
+class BigCompany extends CompanyObfuscated {
 
     public static final String TYPE_NAME = "BigCompany";
 

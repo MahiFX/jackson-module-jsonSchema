@@ -335,8 +335,15 @@ public class PolymorphicSchemaUtil {
             return;
         }
         for (Map.Entry<String, JsonSchema> entry : source.entrySet()) {
-            if (!(entry.getValue() instanceof ReferenceSchema) && !(entry.getValue() instanceof AnyOfSchema)) {
-                target.put(entry.getKey(), entry.getValue());
+            JsonSchema sourceSchema = entry.getValue();
+            String key = entry.getKey();
+            if (!target.containsKey(key)) {
+                target.put(key, sourceSchema);
+            } else {
+                boolean isPolyMorph = sourceSchema instanceof PolymorphicObjectSchema;
+                if (!(sourceSchema instanceof ReferenceSchema) && !(sourceSchema instanceof AnyOfSchema) && !isPolyMorph) {
+                    target.put(key, sourceSchema);
+                }
             }
         }
     }

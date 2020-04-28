@@ -21,10 +21,10 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
 
     private SerializerProvider provider;
 
-    public PolymorphicObjectVisitor(PolymorphicObjectSchema schema, JavaType type,SerializerProvider provider) {
+    public PolymorphicObjectVisitor(PolymorphicObjectSchema schema, JavaType type, SerializerProvider provider) {
         this.schema = schema;
         this.originalType = type;
-        this.provider=provider;
+        this.provider = provider;
     }
 
     @Override
@@ -36,22 +36,22 @@ public class PolymorphicObjectVisitor implements JsonSchemaProducer {
 
         SchemaGenerationContext context = SchemaGenerationContext.get();
 
-        if(context.isVisitedAsPolymorphicType(type)){
+        if (context.isVisitedAsPolymorphicType(type)) {
             throw new IllegalStateException("JavaType: " + type.getRawClass().getSimpleName() + "has already been visited. A single class can be handled polymorphicly only once");
 
         }
         context.setVisitedAsPolymorphic(type);
 
-        PolymorphicSchemaUtil handlingUtil = new PolymorphicSchemaUtil(type,this.provider);
+        PolymorphicSchemaUtil handlingUtil = new PolymorphicSchemaUtil(type, this.provider);
         if (handlingUtil.isPolymorphic()) {
-            PolymorphicSchemaUtil.PolymorphiSchemaDefinition def =handlingUtil.extractPolyMorphicObjectSchema();
+            PolymorphicSchemaUtil.PolymorphiSchemaDefinition def = handlingUtil.extractPolyMorphicObjectSchema();
             if (schema.getDefinitions() == null) {
-                schema.setDefinitions(new HashMap<String, JsonSchema>());
+                schema.setDefinitions(new HashMap<>());
             }
             schema.getDefinitions().put(def.getOrigianlTypeName(), def.getPolymorphicObjectSchema());
             schema.set$ref(def.getDefinitionsReference());
             schema.setType(def.getPolymorphicObjectSchema().getType());
-            context.setFormatTypeForVisitedType(type,def.getPolymorphicObjectSchema().getType());
+            context.setFormatTypeForVisitedType(type, def.getPolymorphicObjectSchema().getType());
             context.setSchemaRefForPolymorphicType(type, def.getDefinitionsReference());
             //schema.setId(id);
 

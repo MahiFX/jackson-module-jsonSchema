@@ -4,28 +4,14 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonAnyFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonBooleanFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNullFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.*;
+import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.TypeDecorationUtils;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.*;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -57,7 +43,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     public JsonAnyFormatVisitor expectAnyFormat(JavaType convertedType) {
         PolymorphicObjectSchema simulatedAny = SchemaGenerationContext.get().getSchemaProvider().polymorphicObjectSchema();
         simulatedAny.setTypes(AnyVisitor.FORMAT_TYPES_EXCEPT_ANY);
-        this.schema=simulatedAny;
+        this.schema = simulatedAny;
 
         return new AnyVisitor(this.schema);
     }
@@ -130,26 +116,46 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     @Override
     public JsonObjectFormatVisitor expectObjectFormat(JavaType convertedType) {
         SchemaGenerationContext context = SchemaGenerationContext.get();
-        if(context.isVisited(convertedType,true)){
-            schema=context.getReferenceSchemaForVisitedType(convertedType);
+        if (context.isVisited(convertedType, true)) {
+            schema = context.getReferenceSchemaForVisitedType(convertedType);
             return new JsonObjectFormatVisitor.Base();
         }
 
         ObjectSchema s = context.getSchemaProvider().objectSchema();
         schema = s;
         this.originalType = convertedType;
-        if(!context.isWithAdditonalProperties()){
+        if (!context.isWithAdditionalProperties()) {
             s.setAdditionalProperties(ObjectSchema.NoAdditionalProperties.instance);
         }
 
         // give each object schema a reference id and keep track of the ones we've seen
         context.setVisitedAsNonPolymorphic(convertedType);
-        String id = context.setSchemaRefForNonPolymorphicType(convertedType);
-        s.setId(id);
-        context.setFormatTypeForVisitedType(convertedType,new JsonSchema.SingleJsonType(JsonFormatTypes.OBJECT));
-        JsonObjectFormatVisitor visitor = context.getVisitorFactory().objectFormatVisitor(s ,convertedType);
+
+        if(convertedType != null) {
+            String id = SchemaGenerationContext.javaTypeToUrn(toCanonicalName(convertedType));
+            context.setSchemaRefForNonPolymorphicType(convertedType, id);
+            s.setId(id);
+        }
+        context.setFormatTypeForVisitedType(convertedType, new JsonSchema.SingleJsonType(JsonFormatTypes.OBJECT));
+        JsonObjectFormatVisitor visitor = context.getVisitorFactory().objectFormatVisitor(s, convertedType);
         visitor.setProvider(getProvider());
         return visitor;
+    }
+
+    private String toCanonicalName(JavaType convertedType) {
+        try {
+            TypeSerializer serializer = getProvider().findTypeSerializer(convertedType);
+            if (serializer != null) {
+                TypeIdResolver typeIdResolver = serializer.getTypeIdResolver();
+                String typeName = typeIdResolver.idFromBaseType();
+                String packageName = convertedType.getRawClass().getPackage().getName();
+                return packageName + "." + typeName;
+            } else {
+                return convertedType.toCanonical();
+            }
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -158,7 +164,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         PolymorphicObjectSchema s = SchemaGenerationContext.get().getSchemaProvider().polymorphicObjectSchema();
         schema = s;
         this.originalType = convertedType;
-        return SchemaGenerationContext.get().getVisitorFactory().polymorphicObjectVisitor( s, convertedType,getProvider());
+        return SchemaGenerationContext.get().getVisitorFactory().polymorphicObjectVisitor(s, convertedType, getProvider());
     }
 
     /*
@@ -179,7 +185,6 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     }
 
 
-
     public static String toJson(Object o, Type type, ObjectMapper mapper) {
         try {
             return mapper.writer().writeValueAsString(o);
@@ -189,6 +194,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     }
 
     private SerializerProvider provider;
+
     @Override
     public SerializerProvider getProvider() {
         return provider;
@@ -196,6 +202,6 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
 
     @Override
     public void setProvider(SerializerProvider provider) {
-        this.provider=provider;
+        this.provider = provider;
     }
 }
