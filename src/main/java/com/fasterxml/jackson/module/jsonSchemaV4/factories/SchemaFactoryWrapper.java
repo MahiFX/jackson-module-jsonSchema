@@ -164,7 +164,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
         PolymorphicObjectSchema s = SchemaGenerationContext.get().getSchemaProvider().polymorphicObjectSchema();
         schema = s;
         this.originalType = convertedType;
-        return SchemaGenerationContext.get().getVisitorFactory().polymorphicObjectVisitor(s, convertedType, getProvider());
+        return SchemaGenerationContext.get().getVisitorFactory().polymorphicObjectVisitor(s, getProvider());
     }
 
     /*

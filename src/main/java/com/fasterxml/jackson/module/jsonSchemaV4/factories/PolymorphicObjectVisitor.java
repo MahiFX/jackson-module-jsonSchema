@@ -15,15 +15,12 @@ import java.util.HashMap;
  */
 public class PolymorphicObjectVisitor implements JsonSchemaProducer {
 
-    private PolymorphicObjectSchema schema;
+    private final PolymorphicObjectSchema schema;
 
-    private JavaType originalType;
+    private final SerializerProvider provider;
 
-    private SerializerProvider provider;
-
-    public PolymorphicObjectVisitor(PolymorphicObjectSchema schema, JavaType type, SerializerProvider provider) {
+    public PolymorphicObjectVisitor(PolymorphicObjectSchema schema, SerializerProvider provider) {
         this.schema = schema;
-        this.originalType = type;
         this.provider = provider;
     }
 

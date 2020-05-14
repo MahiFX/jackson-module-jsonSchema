@@ -12,5 +12,5 @@ public interface PolymorphicJsonFormatVisitorWrapper extends JsonFormatVisitorWr
     /**
      * @param type Declared type of visited property (or List element) in Java
      */
-    public PolymorphicObjectVisitor expectPolyMorphicObjectFormat(JavaType type) throws JsonMappingException;
+    PolymorphicObjectVisitor expectPolyMorphicObjectFormat(JavaType type) throws JsonMappingException;
 }

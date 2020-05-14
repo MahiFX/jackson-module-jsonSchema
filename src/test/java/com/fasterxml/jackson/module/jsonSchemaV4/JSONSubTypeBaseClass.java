@@ -1,11 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.*;
 
 
 /**
@@ -93,3 +88,65 @@ class BigCompany extends CompanyObfuscated {
     @JsonPropertyDescription("This the name of the director of the big company")
     public String directorName;
 }
+
+@JsonTypeName("Intf")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes(@JsonSubTypes.Type(Impl.class))
+interface Intf {
+
+    String getFoo();
+
+}
+
+
+@JsonTypeName("Intf2")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes({
+        @JsonSubTypes.Type(Impl.class),
+        @JsonSubTypes.Type(Impl2.class),
+})
+interface Intf2 {
+
+    String getFoo();
+
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Impl")
+class Impl implements Intf, Intf2 {
+
+    String foo;
+
+    @Override
+    public String getFoo() {
+        return foo;
+    }
+}
+
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Impl2")
+class Impl2 implements Intf2 {
+
+    String foo;
+
+    @Override
+    public String getFoo() {
+        return foo;
+    }
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Intf[]")
+class IntfArrayMixin {
+
+}
+
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Intf2[]")
+class Intf2ArrayMixin {
+
+}
+
+

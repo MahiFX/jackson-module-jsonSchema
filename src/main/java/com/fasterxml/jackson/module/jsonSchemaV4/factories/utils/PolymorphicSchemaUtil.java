@@ -255,7 +255,7 @@ public class PolymorphicSchemaUtil {
     }
 
     public boolean isPolymorphic() {
-        return subTypes.size() > 1;
+        return subTypes.size() > 0;
     }
 
     public static JsonSchema propagateDefinitionsUp(JsonSchema node) {
