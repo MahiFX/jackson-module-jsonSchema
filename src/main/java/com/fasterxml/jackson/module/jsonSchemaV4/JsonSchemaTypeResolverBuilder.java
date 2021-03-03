@@ -4,15 +4,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.util.JsonParserSequence;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
-import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.jsontype.*;
 import com.fasterxml.jackson.databind.jsontype.impl.AsArrayTypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.impl.AsExternalTypeDeserializer;
 import com.fasterxml.jackson.databind.jsontype.impl.AsPropertyTypeDeserializer;
@@ -37,37 +30,38 @@ public class JsonSchemaTypeResolverBuilder extends ObjectMapper.DefaultTypeResol
     @Override
     public TypeDeserializer buildTypeDeserializer(DeserializationConfig config, JavaType baseType, Collection<NamedType> subtypes) {
 
-            if (_idType == JsonTypeInfo.Id.NONE) { return null; }
+        if (_idType == JsonTypeInfo.Id.NONE) {
+            return null;
+        }
 
-            TypeIdResolver idRes = idResolver(config, baseType, subtypes, false, true);
+        PolymorphicTypeValidator validator = BasicPolymorphicTypeValidator.builder().build();
+        TypeIdResolver idRes = idResolver(config, baseType, validator, subtypes, false, true);
 
-            // First, method for converting type info to type id:
-            switch (_includeAs) {
-                case WRAPPER_ARRAY:
-                    return new AsArrayTypeDeserializer(baseType, idRes,
-                            _typeProperty, _typeIdVisible, _defaultImpl);
-                case PROPERTY:
-                case EXISTING_PROPERTY: // as per [#528] same class as PROPERTY
-                    return new JsonSchemaPropertyTypeDeserializer(baseType, idRes,
-                            _typeProperty, _typeIdVisible, _defaultImpl, _includeAs);
-                case WRAPPER_OBJECT:
-                    return new AsWrapperTypeDeserializer(baseType, idRes,
-                            _typeProperty, _typeIdVisible, _defaultImpl);
-                case EXTERNAL_PROPERTY:
-                    return new AsExternalTypeDeserializer(baseType, idRes,
-                            _typeProperty, _typeIdVisible, _defaultImpl);
-            }
-            throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: "+_includeAs);
+        JavaType defaultType = _defaultImpl != null ? config.getTypeFactory().constructType(_defaultImpl) : null;
+
+        // First, method for converting type info to type id:
+        switch (_includeAs) {
+            case WRAPPER_ARRAY:
+                return new AsArrayTypeDeserializer(baseType, idRes,
+                        _typeProperty, _typeIdVisible, defaultType);
+            case PROPERTY:
+            case EXISTING_PROPERTY: // as per [#528] same class as PROPERTY
+                return new JsonSchemaPropertyTypeDeserializer(baseType, idRes,
+                        _typeProperty, _typeIdVisible, defaultType, _includeAs);
+            case WRAPPER_OBJECT:
+                return new AsWrapperTypeDeserializer(baseType, idRes,
+                        _typeProperty, _typeIdVisible, defaultType);
+            case EXTERNAL_PROPERTY:
+                return new AsExternalTypeDeserializer(baseType, idRes,
+                        _typeProperty, _typeIdVisible, defaultType);
+        }
+        throw new IllegalStateException("Do not know how to construct standard type serializer for inclusion type: " + _includeAs);
 
     }
 
-    private static class JsonSchemaPropertyTypeDeserializer extends AsPropertyTypeDeserializer{
+    private static class JsonSchemaPropertyTypeDeserializer extends AsPropertyTypeDeserializer {
 
-        public JsonSchemaPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, String typePropertyName, boolean typeIdVisible, Class<?> defaultImpl) {
-            super(bt, idRes, typePropertyName, typeIdVisible, defaultImpl);
-        }
-
-        public JsonSchemaPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, String typePropertyName, boolean typeIdVisible, Class<?> defaultImpl, JsonTypeInfo.As inclusion) {
+        public JsonSchemaPropertyTypeDeserializer(JavaType bt, TypeIdResolver idRes, String typePropertyName, boolean typeIdVisible, JavaType defaultImpl, JsonTypeInfo.As inclusion) {
             super(bt, idRes, typePropertyName, typeIdVisible, defaultImpl, inclusion);
         }
 
@@ -77,12 +71,12 @@ public class JsonSchemaTypeResolverBuilder extends ObjectMapper.DefaultTypeResol
 
         @Override
         public TypeDeserializer forProperty(BeanProperty prop) {
-            return prop == this._property?this:new JsonSchemaPropertyTypeDeserializer(this, prop);
+            return prop == this._property ? this : new JsonSchemaPropertyTypeDeserializer(this, prop);
         }
 
-        protected Object _deserializeTypedForId(JsonParser jp, DeserializationContext ctxt, TokenBuffer tb) throws IOException
-        {
-            if(jp.getCurrentToken() == JsonToken.VALUE_STRING) {
+        protected Object _deserializeTypedForId(JsonParser jp, DeserializationContext ctxt, TokenBuffer tb, String passedInTypeId) throws IOException {
+
+            if (jp.getCurrentToken() == JsonToken.VALUE_STRING) {
                 String typeId = jp.getText();
                 JsonDeserializer<Object> deser = _findDeserializer(ctxt, typeId);
                 if (_typeIdVisible) { // need to merge id back in JSON input?
@@ -93,31 +87,30 @@ public class JsonSchemaTypeResolverBuilder extends ObjectMapper.DefaultTypeResol
                     tb.writeString(typeId);
                 }
                 if (tb != null) { // need to put back skipped properties?
-                    jp = JsonParserSequence.createFlattened(tb.asParser(jp), jp);
+                    jp = JsonParserSequence.createFlattened(false, tb.asParser(jp), jp);
                 }
                 // Must point to the next value; tb had no current, jp pointed to VALUE_STRING:
                 jp.nextToken(); // to skip past String value
                 // deserializer should take care of closing END_OBJECT as well
                 return deser.deserialize(jp, ctxt);
-            }
-            else if(jp.getCurrentToken() == JsonToken.START_ARRAY){
-                if(_typeIdVisible){
-                    if(tb==null){
+            } else if (jp.getCurrentToken() == JsonToken.START_ARRAY) {
+                if (_typeIdVisible) {
+                    if (tb == null) {
                         tb = new TokenBuffer(jp.getCodec(), false);
                     }
                     tb.writeFieldName(jp.getCurrentName());
                 }
                 Set<String> values = new HashSet<String>();
-                while(jp.getCurrentToken()!=JsonToken.END_ARRAY){
-                    if(_typeIdVisible){
+                while (jp.getCurrentToken() != JsonToken.END_ARRAY) {
+                    if (_typeIdVisible) {
                         tb.copyCurrentEvent(jp);
                     }
                     jp.nextToken();
-                    if(jp.getCurrentToken() == JsonToken.VALUE_STRING){
+                    if (jp.getCurrentToken() == JsonToken.VALUE_STRING) {
                         values.add(jp.getText());
                     }
                 }
-                if(_typeIdVisible){
+                if (_typeIdVisible) {
                     tb.copyCurrentEvent(jp);
                 }
                 String typeId = Arrays.toString(values.toArray(new String[0]));

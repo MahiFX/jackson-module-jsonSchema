@@ -1,9 +1,12 @@
 package com.fasterxml.jackson.module.jsonSchema;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.module.jsonSchema.annotation.JsonHyperSchema;
 import com.fasterxml.jackson.module.jsonSchema.annotation.Link;
 import com.fasterxml.jackson.module.jsonSchema.customProperties.HyperSchemaFactoryWrapper;
+import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
+import com.fasterxml.jackson.module.jsonSchema.factories.WrapperFactory;
 import com.fasterxml.jackson.module.jsonSchema.types.LinkDescriptionObject;
 
 /**
@@ -16,8 +19,8 @@ public class HyperSchemaFactoryWrapperTest extends SchemaTestBase {
     }
 
     @JsonHyperSchema(pathStart = "/persons/", links = {
-        @Link(href = "{name}", rel = "self"),
-        @Link(href = "{name}/pet", rel = "pet", targetSchema = Pet.class)
+            @Link(href = "{name}", rel = "self"),
+            @Link(href = "{name}/pet", rel = "pet", targetSchema = Pet.class)
     })
     public class Person {
         public String name;
@@ -63,9 +66,14 @@ public class HyperSchemaFactoryWrapperTest extends SchemaTestBase {
         mapper.acceptJsonFormatVisitor(Person.class, personVisitor);
         JsonSchema personSchema = personVisitor.finalSchema();
         */
-        JsonSchema personSchema = new JsonSchemaGenerator(mapper,
-                new HyperSchemaFactoryWrapper())
-            .generateSchema(Person.class);
+        WrapperFactory wrapperFactory = new WrapperFactory() {
+            @Override
+            public SchemaFactoryWrapper getWrapper(SerializerProvider provider) {
+                return new HyperSchemaFactoryWrapper();
+            }
+        };
+        JsonSchema personSchema = new JsonSchemaGenerator(mapper, wrapperFactory)
+                .generateSchema(Person.class);
 
         HyperSchemaFactoryWrapper petVisitor = new HyperSchemaFactoryWrapper();
         mapper.acceptJsonFormatVisitor(Pet.class, petVisitor);

@@ -3,16 +3,18 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
-import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.HashSet;
 
+import static com.fasterxml.jackson.module.jsonSchemaV4.PolymorphicTypeTest.containsDefinitions;
+import static com.fasterxml.jackson.module.jsonSchemaV4.PolymorphicTypeTest.verifyAnyOfContent;
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.schema;
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.toJson;
-import static com.fasterxml.jackson.module.jsonSchemaV4.PolymorphicTypeTest.*;
 
 /**
  * Created by zoliszel on 09/06/2015.
@@ -40,17 +42,17 @@ public class PolymorphicTypeWithMixInsTest {
         String json = toJson(schema, schema.getClass(), new ObjectMapper());
         System.out.println(json);
         verifyDefinitions(schema);
-        Assert.assertTrue("Resulting schema should be an array schema",schema.isArraySchema());
+        Assert.assertTrue("Resulting schema should be an array schema", schema.isArraySchema());
         Assert.assertNotNull("Items should have a reference", schema.asArraySchema().getItems().asSingleItems().getSchema().get$ref());
 
     }
 
     private void verifyDefinitions(JsonSchema schema) {
-        containsDefinitions(schema, Sets.newHashSet(CompanyMixIn.TYPE_NAME,CompanyMixIn.TYPE_NAME + PolymorphicSchemaUtil.POLYMORPHIC_TYPE_NAME_SUFFIX,PersonMixIn.TYPE_NAME,BigCompanyMixIn.TYPE_NAME,JSONSubTypeBaseClassWithMixIns.class.getSimpleName()));
+        containsDefinitions(schema, new HashSet<>(Arrays.asList(CompanyMixIn.TYPE_NAME, CompanyMixIn.TYPE_NAME + PolymorphicSchemaUtil.POLYMORPHIC_TYPE_NAME_SUFFIX, PersonMixIn.TYPE_NAME, BigCompanyMixIn.TYPE_NAME, JSONSubTypeBaseClassWithMixIns.class.getSimpleName())));
         JsonSchema jsonSubTypeBaseClassSchema = schema.getDefinitions().get(JSONSubTypeBaseClassWithMixIns.class.getSimpleName());
         Assert.assertTrue("JsonSubTypeBaseClass should be polymorphic", jsonSubTypeBaseClassSchema.isPolymorhpicObjectSchema());
-        ReferenceSchema[] refSchema =  jsonSubTypeBaseClassSchema.asPolymorphicObjectSchema().getAnyOf();
-        verifyAnyOfContent(refSchema, Sets.newHashSet(PersonMixIn.TYPE_NAME, CompanyMixIn.TYPE_NAME, BigCompanyMixIn.TYPE_NAME));
+        ReferenceSchema[] refSchema = jsonSubTypeBaseClassSchema.asPolymorphicObjectSchema().getAnyOf();
+        verifyAnyOfContent(refSchema, new HashSet<>(Arrays.asList(PersonMixIn.TYPE_NAME, CompanyMixIn.TYPE_NAME, BigCompanyMixIn.TYPE_NAME)));
         Assert.assertNotNull("Person schema should have required fields", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired());
         Assert.assertTrue("name property is required for person", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired().contains("name"));
         Assert.assertTrue("name property is required for person", schema.getDefinitions().get(PersonMixIn.TYPE_NAME).asObjectSchema().getRequired().contains("dateOfBirth"));
