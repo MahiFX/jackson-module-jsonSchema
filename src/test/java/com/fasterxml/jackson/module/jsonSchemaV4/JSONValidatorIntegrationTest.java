@@ -47,7 +47,7 @@ public class JSONValidatorIntegrationTest {
     @Test
     public void javaToJsonValidateTestSuccess() throws Exception {
         JSONSubTypeBaseClass[] elements = new JSONSubTypeBaseClass[]{
-                new BigCompany("This is a really big company", "John"), new Person("zoltan", "19820928"), new Company("this is a small company")
+                new BigCompany("This is a really big company", "John"), new Person("zoltan", "19820928"), new CompanyObfuscated("this is a small company")
         };
 
         String jsonString = Utils.toJson(elements, elements.getClass(), new ObjectMapper());
@@ -62,7 +62,7 @@ public class JSONValidatorIntegrationTest {
     @Test
     public void javaToJsonValidateTestFail() throws Exception {
         JSONSubTypeBaseClass[] elements = new JSONSubTypeBaseClass[]{
-                new BigCompany(), new Person(), new Company()
+                new BigCompany(), new Person(), new CompanyObfuscated()
         };
 
         String jsonString = Utils.toJson(elements, elements.getClass(), new ObjectMapper());
@@ -78,7 +78,7 @@ public class JSONValidatorIntegrationTest {
     @Test
     public void javaToJsonValidateTestObjectSuccess() throws Exception {
         JSONSubTypeBaseClass[] elements = new JSONSubTypeBaseClass[]{
-                new BigCompany("This is a really big company", "John"), new Person("zoltan", "19820928"), new Company("this is a small company")
+                new BigCompany("This is a really big company", "John"), new Person("zoltan", "19820928"), new CompanyObfuscated("this is a small company")
         };
 
         com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass.class, mapper);
@@ -96,7 +96,7 @@ public class JSONValidatorIntegrationTest {
     @Test
     public void javaToJsonValidateTestObjectFail() throws Exception {
         JSONSubTypeBaseClass[] elements = new JSONSubTypeBaseClass[]{
-                new BigCompany(), new Person(), new Company()
+                new BigCompany(), new Person(), new CompanyObfuscated()
         };
 
         com.github.fge.jsonschema.main.JsonSchema schema = createValidatorSchemaForClass(JSONSubTypeBaseClass.class, mapper);

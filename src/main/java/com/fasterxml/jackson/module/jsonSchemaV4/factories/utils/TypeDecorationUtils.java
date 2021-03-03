@@ -167,7 +167,7 @@ public class TypeDecorationUtils {
         }
         Set<String> typeNames = new HashSet<String>();
         if(originalType.isContainerType()) {
-            for (PolymorphicSchemaUtil.NamedJavaType namedJavaType : PolymorphicSchemaUtil.extractSubTypes(originalType, provider.getConfig(), true)) {
+            for (PolymorphicSchemaUtil.NamedJavaType namedJavaType : PolymorphicSchemaUtil.extractSubTypes(originalType, provider.getConfig(), false)) {
                 String typeName = typeSerializer.getTypeIdResolver().idFromValueAndType(null, namedJavaType.getRawClass());
                 if (typeName != null) {
                     typeNames.add(typeName);
@@ -197,6 +197,8 @@ public class TypeDecorationUtils {
         ArraySchema arraySchema = SchemaGenerationContext.get().getSchemaProvider().arraySchema();
         arraySchema.setAdditionalItems(new ArraySchema.NoAdditionalItems());
         arraySchema.setItems(new ArraySchema.ArrayItems(new JsonSchema[]{typeSchema, originalSchema}));
+        arraySchema.setMaxItems(2);
+        arraySchema.setMinItems(2);
         return arraySchema;
     }
 }

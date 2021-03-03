@@ -3,7 +3,6 @@ package com.fasterxml.jackson.module.jsonSchema;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 public class TestUnwrapping extends SchemaTestBase
 {
     static class UnwrappingRoot

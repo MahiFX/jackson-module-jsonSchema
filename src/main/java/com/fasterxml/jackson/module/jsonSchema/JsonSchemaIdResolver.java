@@ -77,5 +77,5 @@ public class JsonSchemaIdResolver extends TypeIdResolverBase {
     public String idFromBaseType() {
         return null;
     }
-
 }
+

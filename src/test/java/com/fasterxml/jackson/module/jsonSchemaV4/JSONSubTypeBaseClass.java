@@ -1,21 +1,15 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.annotation.*;
 
 
 /**
  * Created by zoliszel on 09/06/2015.
  */
-//@JsonTypeName(JSONSubTypeBaseClass.TYPE)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 @JsonSubTypes({
         @JsonSubTypes.Type(Person.class),
-        @JsonSubTypes.Type(Company.class)
+        @JsonSubTypes.Type(CompanyObfuscated.class)
 })
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public abstract class JSONSubTypeBaseClass {
@@ -48,23 +42,22 @@ class Person extends JSONSubTypeBaseClass {
 @JsonSubTypes({
         @JsonSubTypes.Type(BigCompany.class),
 })
-@JsonTypeName(Company.TYPE_NAME)
-class Company extends JSONSubTypeBaseClass {
+@JsonTypeName(CompanyObfuscated.TYPE_NAME)
+class CompanyObfuscated extends JSONSubTypeBaseClass {
 
     public static final String TYPE_NAME = "Company";
 
-    public Company() {
+    public CompanyObfuscated() {
     }
 
+    @JsonProperty
+    public CompanyObfuscated sisterCompany;
 
     @JsonProperty
-    public Company sisterCompany;
-
-    @JsonProperty
-    public Company[] competitors;
+    public CompanyObfuscated[] competitors;
 
 
-    public Company(String name) {
+    public CompanyObfuscated(String name) {
         this.nameCompany = name;
     }
 
@@ -77,7 +70,7 @@ class Company extends JSONSubTypeBaseClass {
 }
 
 @JsonTypeName(BigCompany.TYPE_NAME)
-class BigCompany extends Company {
+class BigCompany extends CompanyObfuscated {
 
     public static final String TYPE_NAME = "BigCompany";
 
@@ -93,3 +86,65 @@ class BigCompany extends Company {
     @JsonPropertyDescription("This the name of the director of the big company")
     public String directorName;
 }
+
+@JsonTypeName("Intf")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes(@JsonSubTypes.Type(Impl.class))
+interface Intf {
+
+    String getFoo();
+
+}
+
+
+@JsonTypeName("Intf2")
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonSubTypes({
+        @JsonSubTypes.Type(Impl.class),
+        @JsonSubTypes.Type(Impl2.class),
+})
+interface Intf2 {
+
+    String getFoo();
+
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Impl")
+class Impl implements Intf, Intf2 {
+
+    String foo;
+
+    @Override
+    public String getFoo() {
+        return foo;
+    }
+}
+
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Impl2")
+class Impl2 implements Intf2 {
+
+    String foo;
+
+    @Override
+    public String getFoo() {
+        return foo;
+    }
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Intf[]")
+class IntfArrayMixin {
+
+}
+
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Intf2[]")
+class Intf2ArrayMixin {
+
+}
+
+

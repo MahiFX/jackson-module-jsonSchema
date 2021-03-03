@@ -87,7 +87,7 @@ public class JsonSchemaTypeResolverBuilder extends ObjectMapper.DefaultTypeResol
                     tb.writeString(typeId);
                 }
                 if (tb != null) { // need to put back skipped properties?
-                    jp = JsonParserSequence.createFlattened(false, tb.asParser(jp), jp);
+                    jp = JsonParserSequence.createFlattened(tb.asParser(jp), jp);
                 }
                 // Must point to the next value; tb had no current, jp pointed to VALUE_STRING:
                 jp.nextToken(); // to skip past String value

@@ -10,27 +10,17 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.google.common.collect.Sets;
-import org.junit.*;
+import org.junit.Assert;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Created by zoliszel on 02/07/2015.
  */
 public class TypeDecorationPolymorphicContainerTest {
 
-    public static final HashSet<String> MAP_TYPES = Sets.newHashSet("HashMap", "TreeMap", "LinkedHashMap");
-    public static final HashSet<String> SET_TYPES = Sets.newHashSet("HashSet", "LinkedHashSet", "TreeSet");
+    public static final HashSet<String> MAP_TYPES = Sets.newHashSet("HashMap", "Map", "TreeMap", "LinkedHashMap");
+    public static final HashSet<String> SET_TYPES = Sets.newHashSet("HashSet", "Set", "LinkedHashSet", "TreeSet");
 
     //    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.WRAPPER_ARRAY)
     @JsonSubTypes({
@@ -42,8 +32,7 @@ public class TypeDecorationPolymorphicContainerTest {
     }
 
 
-
-//    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.WRAPPER_ARRAY)
+    //    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.WRAPPER_ARRAY)
     @JsonSubTypes({
             @JsonSubTypes.Type(value = HashSet.class, name = "HashSet"),
             @JsonSubTypes.Type(value = LinkedHashSet.class, name = "LinkedHashSet"),
@@ -52,15 +41,15 @@ public class TypeDecorationPolymorphicContainerTest {
     public static class SetMixIn {
     }
 
-//    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.WRAPPER_ARRAY)
+    //    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include = JsonTypeInfo.As.WRAPPER_ARRAY)
     @JsonSubTypes(@JsonSubTypes.Type(value = ArrayList.class, name = "ArrayList"))
     public static class ListMixin {
 
     }
 
-    private List<JsonSchemaGenerator> createGeneratorsForModes(List<JsonTypeInfo.As> modes){
+    private List<JsonSchemaGenerator> createGeneratorsForModes(List<JsonTypeInfo.As> modes) {
         List<JsonSchemaGenerator> result = new ArrayList<JsonSchemaGenerator>();
-        for(JsonTypeInfo.As mode : modes){
+        for (JsonTypeInfo.As mode : modes) {
             ObjectMapper mapper = new ObjectMapper();
             mapper.addMixIn(List.class, ListMixin.class);
             mapper.addMixIn(Map.class, MapMixIn.class);
@@ -68,20 +57,20 @@ public class TypeDecorationPolymorphicContainerTest {
 
             TypeResolverBuilder typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL)
                     .inclusion(mode)
-                    .init(JsonTypeInfo.Id.NAME,null);
+                    .init(JsonTypeInfo.Id.NAME, null);
             mapper.setDefaultTyping(typer);
             result.add(new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build());
         }
         return result;
     }
 
-    private void verifyGeneratedAsWrapperArraySchema(Set<String> expectedEnumTypes, JsonSchema schema,boolean itemsAreStringArrays){
-        Assert.assertTrue("Was expecting array schema, found" + schema.getClass().getSimpleName(),schema.isArraySchema());
+    private void verifyGeneratedAsWrapperArraySchema(Set<String> expectedEnumTypes, JsonSchema schema, boolean itemsAreStringArrays) {
+        Assert.assertTrue("Was expecting array schema, found" + schema.getClass().getSimpleName(), schema.isArraySchema());
         ArraySchema arraySchema = schema.asArraySchema();
-        Assert.assertTrue("it should have 2 items",arraySchema.getItems().asArrayItems().getJsonSchemas().length==2);
+        Assert.assertTrue("it should have 2 items", arraySchema.getItems().asArrayItems().getJsonSchemas().length == 2);
         JsonSchema[] items = arraySchema.getItems().asArrayItems().getJsonSchemas();
         verifyTypeSchema(expectedEnumTypes, items[0]);
-        if(itemsAreStringArrays){
+        if (itemsAreStringArrays) {
             verifyArrayContentType(items[1]);
         }
     }
@@ -92,7 +81,7 @@ public class TypeDecorationPolymorphicContainerTest {
     }
 
     private void verifyTypeSchema(Set<String> expectedEnumTypes, JsonSchema typeSchema) {
-        Assert.assertNotNull("Type schema shuld not be null",typeSchema);
+        Assert.assertNotNull("Type schema shuld not be null", typeSchema);
         Assert.assertTrue("Type schema should be a string schema", typeSchema.isStringSchema());
         Assert.assertNotNull("Allowed types should be restricted", typeSchema.asStringSchema().getEnums());
         Assert.assertEquals("Found differences in available types", expectedEnumTypes, typeSchema.asStringSchema().getEnums());
@@ -108,17 +97,17 @@ public class TypeDecorationPolymorphicContainerTest {
 
     @org.junit.Test
     public void listTestAsWrapperArray() throws JsonProcessingException {
-        for(JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_ARRAY,JsonTypeInfo.As.PROPERTY)) ) {
+        for (JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_ARRAY, JsonTypeInfo.As.PROPERTY))) {
             JsonSchema schema = unitUnderTest.generateSchema(new TypeReference<List<String>>() {
             }.getType());
             System.out.println(unitUnderTest.schemaAsString(schema));
-            verifyGeneratedAsWrapperArraySchema(Sets.newHashSet("ArrayList"), schema, true);
+            verifyGeneratedAsWrapperArraySchema(Sets.newHashSet("ArrayList", "List"), schema, true);
         }
     }
 
     @org.junit.Test
     public void setTestAsWrapperArray() throws JsonProcessingException {
-        for(JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_ARRAY,JsonTypeInfo.As.PROPERTY)) ) {
+        for (JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_ARRAY, JsonTypeInfo.As.PROPERTY))) {
             JsonSchema schema = unitUnderTest.generateSchema(new TypeReference<Set<String>>() {
             }.getType());
             System.out.println(unitUnderTest.schemaAsString(schema));
@@ -147,73 +136,73 @@ public class TypeDecorationPolymorphicContainerTest {
             System.out.println(unitUnderTest.schemaAsString(schema));
             verifyMapContentType(schema);
             ObjectSchema objectSchema = schema.asObjectSchema();
-            Assert.assertNotNull("properties should be set",objectSchema.getProperties());
+            Assert.assertNotNull("properties should be set", objectSchema.getProperties());
             JsonSchema typePropertySchema = objectSchema.getProperties().get(JsonTypeInfo.Id.NAME.getDefaultPropertyName());
-            verifyTypeSchema(MAP_TYPES,typePropertySchema);;
+            verifyTypeSchema(MAP_TYPES, typePropertySchema);
+            ;
         }
     }
 
     @org.junit.Test
     public void listTestAsWrappeObject() throws JsonProcessingException {
-        for(JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_OBJECT)) ) {
+        for (JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_OBJECT))) {
             JsonSchema schema = unitUnderTest.generateSchema(new TypeReference<List<String>>() {
             }.getType());
             System.out.println(unitUnderTest.schemaAsString(schema));
-            Assert.assertTrue("expecting object schema",schema.isObjectSchema());
-            Assert.assertNotNull("Should have properties",schema.asObjectSchema().getProperties());
-            verifyArrayContentType(schema.asObjectSchema().getProperties().get("ArrayList"));
+            Assert.assertTrue("expecting object schema", schema.isObjectSchema());
+            Map<String, JsonSchema> properties = schema.asObjectSchema().getDefinitions();
+            Assert.assertNotNull("Should have properties", properties);
+            JsonSchema arrayListDefn = properties.get("ArrayList");
+            verifyArrayContentType(arrayListDefn.asObjectSchema().getProperties().get("ArrayList"));
         }
     }
 
 
     @org.junit.Test
-         public void setAsWrappeObject() throws JsonProcessingException {
-        for(JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_OBJECT)) ) {
+    public void setAsWrappeObject() throws JsonProcessingException {
+        for (JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_OBJECT))) {
             JsonSchema schema = unitUnderTest.generateSchema(new TypeReference<Set<String>>() {
             }.getType());
             System.out.println(unitUnderTest.schemaAsString(schema));
-            JsonSchema contentType=verifyWrapperObjectSchemaAndReturnContentType(SET_TYPES, schema);
+            JsonSchema contentType = verifyWrapperObjectSchemaAndReturnContentType(SET_TYPES, schema);
             verifyArrayContentType(contentType);
         }
     }
 
     @org.junit.Test
     public void mapAsWrappeObject() throws JsonProcessingException {
-        for(JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_OBJECT)) ) {
-            JsonSchema schema = unitUnderTest.generateSchema(new TypeReference<Map<String,String>>() {
+        for (JsonSchemaGenerator unitUnderTest : createGeneratorsForModes(Arrays.asList(JsonTypeInfo.As.WRAPPER_OBJECT))) {
+            JsonSchema schema = unitUnderTest.generateSchema(new TypeReference<Map<String, String>>() {
             }.getType());
             System.out.println(unitUnderTest.schemaAsString(schema));
-            JsonSchema contentType=verifyWrapperObjectSchemaAndReturnContentType(MAP_TYPES, schema);
+            JsonSchema contentType = verifyWrapperObjectSchemaAndReturnContentType(MAP_TYPES, schema);
             verifyMapContentType(contentType);
         }
     }
 
-    public JsonSchema verifyWrapperObjectSchemaAndReturnContentType(Set<String> allowedTypes,JsonSchema schema){
-        Assert.assertNotNull("schema should not be null",schema);
-        Assert.assertTrue("was expecting  polymorphic object schema",schema.isPolymorhpicObjectSchema());
+    public JsonSchema verifyWrapperObjectSchemaAndReturnContentType(Set<String> allowedTypes, JsonSchema schema) {
+        Assert.assertNotNull("schema should not be null", schema);
+        Assert.assertTrue("was expecting  polymorphic object schema", schema.isPolymorhpicObjectSchema());
         PolymorphicObjectSchema polymorphicObjectSchema = schema.asPolymorphicObjectSchema();
         Assert.assertNotNull("definitions should not be null", schema.getDefinitions());
         Set<String> typeNames = new HashSet<String>();
         Set<JsonSchema> contentSchemas = new HashSet<JsonSchema>();
-        for(JsonSchema definition : schema.getDefinitions().values()){
-            Assert.assertTrue("was expecting object schema",definition.isObjectSchema());
+        for (JsonSchema definition : schema.getDefinitions().values()) {
+            Assert.assertTrue("was expecting object schema", definition.isObjectSchema());
             ObjectSchema objectSchema = definition.asObjectSchema();
-            Assert.assertNotNull("should have properties",objectSchema.getProperties());
+            Assert.assertNotNull("should have properties", objectSchema.getProperties());
             Assert.assertEquals("should have a single property", 1, objectSchema.getProperties().size());
-            for(Map.Entry<String,JsonSchema> props : objectSchema.getProperties().entrySet()){
+            for (Map.Entry<String, JsonSchema> props : objectSchema.getProperties().entrySet()) {
                 typeNames.add(props.getKey());
-                if(!props.getValue().isReferenceSchema()) {
+                if (!props.getValue().isReferenceSchema()) {
                     contentSchemas.add(props.getValue());
                 }
             }
         }
-        Assert.assertEquals("type set does not match",allowedTypes,typeNames);
+        Assert.assertEquals("type set does not match", allowedTypes, typeNames);
         Assert.assertEquals("There should be only 1 non ref content schema", 1, contentSchemas.size());
         return contentSchemas.iterator().next();
     }
-
-
-
 
 
 }

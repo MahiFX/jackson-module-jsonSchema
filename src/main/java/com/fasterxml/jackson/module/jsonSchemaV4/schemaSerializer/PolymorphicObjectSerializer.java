@@ -17,6 +17,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSche
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Created by zoliszel on 12/06/2015.
@@ -25,11 +26,12 @@ public class PolymorphicObjectSerializer extends SimpleSerializers {
 
     public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type, BeanDescription beanDesc) {
         Collection<PolymorphicSchemaUtil.NamedJavaType> subTypes = PolymorphicSchemaUtil.extractSubTypes(type, config, true);
-        //subtype is inclusive with itself.
+        subTypes = subTypes.stream().filter(namedJavaType -> !namedJavaType.getJavaType().equals(type)).collect(Collectors.toList());
+
         //for container types there is no point to be polymorphic, the representation will be the same.
-        if (subTypes.size() > 1 && !type.isContainerType()) {
+        if (subTypes.size() > 0 && !type.isContainerType()) {
             SchemaGenerationContext context = SchemaGenerationContext.get();
-            if(!context.isVisitedAsPolymorphicType(type)){
+            if (!context.isVisitedAsPolymorphicType(type)) {
                 return new PolyMorphicBeanSerializer();
             }
         }

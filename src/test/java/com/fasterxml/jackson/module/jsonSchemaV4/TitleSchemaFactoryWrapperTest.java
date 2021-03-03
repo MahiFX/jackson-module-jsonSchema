@@ -1,5 +1,7 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.customProperties.TitleSchemaFactoryWrapper;
 import junit.framework.TestCase;
@@ -14,6 +16,13 @@ public class TitleSchemaFactoryWrapperTest extends TestCase {
         public String name;
         public String hat;
         public Pet pet;
+        public Typed typed;
+    }
+
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+    @JsonTypeName("TypeName")
+    public class Typed {
+        public String foo;
     }
 
     public void testAddingTitle() throws Exception {
@@ -30,5 +39,11 @@ public class TitleSchemaFactoryWrapperTest extends TestCase {
         String title2 = schema2.asObjectSchema().getTitle();
         assertNotNull(title2);
         assertTrue("schema should have a title", title2.indexOf("Pet") != -1);
+
+        JsonSchema schema3 = schema.asObjectSchema().getProperties().get("typed");
+        assertTrue("schema should be an objectSchema.", schema2.isObjectSchema());
+        String title3 = schema3.asObjectSchema().getTitle();
+        assertNotNull(title3);
+        assertTrue("schema should have a title", title3.indexOf("TypeName") != -1);
     }
 }

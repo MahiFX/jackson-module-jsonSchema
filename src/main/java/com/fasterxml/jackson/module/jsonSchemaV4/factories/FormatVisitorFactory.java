@@ -1,24 +1,9 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
 import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonBooleanFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonIntegerFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNullFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonNumberFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonStringFormatVisitor;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
+import com.fasterxml.jackson.databind.jsonFormatVisitors.*;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.*;
 
 /**
  * Factory class used for constructing visitors for building various
@@ -58,12 +43,10 @@ public class FormatVisitorFactory {
     }
 
 */
-    public JsonArrayFormatVisitor arrayFormatVisitor(ArraySchema arraySchema,JavaType convertedType) {
-        ArrayVisitor visitor = new ArrayVisitor(arraySchema,convertedType);
+    public JsonArrayFormatVisitor arrayFormatVisitor(ArraySchema arraySchema, JavaType convertedType) {
+        ArrayVisitor visitor = new ArrayVisitor(arraySchema, convertedType);
         return visitor;
     }
-
-
 
 
     protected JsonMapFormatVisitor mapFormatVisitor(ObjectSchema objectSchema) {
@@ -72,7 +55,7 @@ public class FormatVisitorFactory {
     }
 
     protected JsonObjectFormatVisitor objectFormatVisitor(ObjectSchema objectSchema, JavaType convertedType) {
-        ObjectVisitor v = new ObjectVisitor(objectSchema,convertedType);
+        ObjectVisitor v = new ObjectVisitor(objectSchema, convertedType);
         return v;
     }
 
@@ -103,8 +86,7 @@ public class FormatVisitorFactory {
         return new StringVisitor(stringSchema);
     }
 
-    public PolymorphicObjectVisitor polymorphicObjectVisitor(PolymorphicObjectSchema s, JavaType type,SerializerProvider provider) {
-        PolymorphicObjectVisitor polymorphicObjectVisitor = new PolymorphicObjectVisitor(s, type,provider);
-        return polymorphicObjectVisitor;
+    public PolymorphicObjectVisitor polymorphicObjectVisitor(PolymorphicObjectSchema s, JavaType type, SerializerProvider provider) {
+        return new PolymorphicObjectVisitor(s, type, provider);
     }
 }
