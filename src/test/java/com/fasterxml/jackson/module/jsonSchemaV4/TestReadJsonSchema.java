@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializable;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 
@@ -19,7 +18,7 @@ import java.util.Map;
 public class TestReadJsonSchema
         extends SchemaTestBase {
     enum SchemaEnum {
-        NO,YES;
+        NO, YES;
     }
 
     @JsonPropertyOrder(alphabetic = true)
@@ -67,7 +66,7 @@ public class TestReadJsonSchema
         MAPPER.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
     }
 
-    private JsonSchemaGenerator GENERATOR=new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
+    private JsonSchemaGenerator GENERATOR = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
 
     /**
      * Verifies that a simple schema that is serialized can be deserialized back
@@ -124,7 +123,7 @@ public class TestReadJsonSchema
 
 
     public void _testSimple(Class<?> type) throws Exception {
-        JsonSchema jsonSchema =GENERATOR.generateSchema(MAPPER.constructType(type));
+        JsonSchema jsonSchema = GENERATOR.generateSchema(MAPPER.constructType(type));
         assertNotNull(jsonSchema);
 
         _testSimple(type.getSimpleName(), jsonSchema);

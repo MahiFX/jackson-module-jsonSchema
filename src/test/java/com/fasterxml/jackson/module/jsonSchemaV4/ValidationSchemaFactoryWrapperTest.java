@@ -15,6 +15,8 @@ import javax.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
 
+import static com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil.DEFINITION_PREFIX;
+
 /**
  * @author cponomaryov
  */
@@ -292,6 +294,12 @@ public class ValidationSchemaFactoryWrapperTest extends SchemaTestBase {
         for (Object[] testCase : listTestData()) {
             JsonSchema propertySchema = properties.get(testCase[0]);
             assertNotNull(propertySchema);
+
+            if(propertySchema.isReferenceSchema()){
+                String $ref = propertySchema.asReferenceSchema().get$ref().replace(DEFINITION_PREFIX, "");
+                propertySchema = jsonSchema.getDefinitions().get($ref);
+            }
+
             assertTrue(propertySchema.isArraySchema());
             ArraySchema arraySchema = propertySchema.asArraySchema();
             assertEquals(testCase[1], arraySchema.getMinItems());

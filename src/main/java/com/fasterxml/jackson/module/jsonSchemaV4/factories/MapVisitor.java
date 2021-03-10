@@ -2,14 +2,11 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonMapFormatVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
 /**
  * While JSON Schema does not have notion of "Map" type (unlimited property
@@ -69,7 +66,7 @@ public class MapVisitor extends JsonMapFormatVisitor.Base
             return context.getReferenceSchemaForVisitedType(propertyTypeHint);
         }
 
-        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
+        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper();
         handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
         return visitor.finalSchema();
     }

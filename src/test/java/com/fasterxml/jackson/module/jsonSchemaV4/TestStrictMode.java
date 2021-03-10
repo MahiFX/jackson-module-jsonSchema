@@ -44,7 +44,7 @@ public class TestStrictMode {
         JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withAdditonalProperties(false).build();
         JsonSchema schema = generator.generateSchema(Test.class);
         System.out.print(generator.schemaAsString(schema,true));
-        Assert.assertTrue("Additional properties are not set", schema.asObjectSchema().getAdditionalProperties() == ObjectSchema.NoAdditionalProperties.instance);
-        Assert.assertTrue("some object should have additonal properties",schema.asObjectSchema().getProperties().get("someObject").asObjectSchema().getProperties() != ObjectSchema.NoAdditionalProperties.instance);
+        Assert.assertSame("Additional properties are not set", schema.asObjectSchema().getAdditionalProperties(), ObjectSchema.NoAdditionalProperties.instance);
+        Assert.assertNotSame("some object should have additonal properties", schema.asObjectSchema().getProperties().get("someObject").asObjectSchema().getProperties(), ObjectSchema.NoAdditionalProperties.instance);
     }
 }

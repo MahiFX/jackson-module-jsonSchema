@@ -31,8 +31,15 @@ public class UnionTypeSchema extends JsonSchema {
 
     @Override
     public JSONType getType() {
-        // Hmmh. What should be returned here?
-        return null;
+        return new SingleJsonType(JsonFormatTypes.ARRAY);
+    }
+
+    @Override
+    public JsonSchema clone() {
+        UnionTypeSchema unionTypeSchema = new UnionTypeSchema();
+        cloneSchema(unionTypeSchema);
+        unionTypeSchema.setElements(getElements());
+        return unionTypeSchema;
     }
 
     public ValueTypeSchema[] getElements() {

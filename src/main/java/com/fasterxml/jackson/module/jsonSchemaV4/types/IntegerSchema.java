@@ -40,6 +40,14 @@ public class IntegerSchema extends NumberSchema {
     }
 
     @Override
+    public JsonSchema clone() {
+        IntegerSchema integerSchema = new IntegerSchema();
+        cloneNumber(integerSchema);
+        integerSchema.setMultipleOf(getMultipleOf());
+        return integerSchema;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
         if (obj == null) return false;

@@ -20,6 +20,13 @@ public class BooleanSchema extends ValueTypeSchema {
     }
 
     @Override
+    public JsonSchema clone() {
+        BooleanSchema booleanSchema = new BooleanSchema();
+        cloneValue(booleanSchema);
+        return booleanSchema;
+    }
+
+    @Override
     public BooleanSchema asBooleanSchema() {
         return this;
     }

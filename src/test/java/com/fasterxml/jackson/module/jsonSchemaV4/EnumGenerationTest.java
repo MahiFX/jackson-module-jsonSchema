@@ -1,23 +1,13 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationConfig;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
-import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-
 import org.junit.Assert;
-import org.junit.Ignore;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +59,7 @@ public class EnumGenerationTest extends SchemaTestBase {
     public void testEnumWithToString() throws Exception {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
-        JsonSchemaGenerator schemaGenerator  =new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        JsonSchemaGenerator schemaGenerator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
         JsonSchema jsonSchema = schemaGenerator.generateSchema(LetterBean.class);
         @SuppressWarnings("unchecked")
         Map<String, Object> result = (Map<String, Object>) mapper.convertValue(jsonSchema, Map.class);
@@ -88,7 +78,7 @@ public class EnumGenerationTest extends SchemaTestBase {
         return new LinkedHashMap<String, Object>() {
             {
                 put("type", "object");
-                put("id", "urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:EnumGenerationTest:LetterBean");
+                put("id", "#com:fasterxml:jackson:module:jsonSchemaV4:EnumGenerationTest:LetterBean");
                 put("properties",
                         new LinkedHashMap<String, Object>() {
                             {
@@ -113,7 +103,7 @@ public class EnumGenerationTest extends SchemaTestBase {
 
     // for [jsonSchema#57]
     @SuppressWarnings("unchecked")
-   // @Ignore("Requires jackson-databind 2.6.0")
+    // @Ignore("Requires jackson-databind 2.6.0")
     public void testEnumWithJsonValue() throws Exception {
         JsonSchema schema = SCHEMA_GEN.generateSchema(EnumViaJsonValue.class);
 
@@ -135,21 +125,21 @@ public class EnumGenerationTest extends SchemaTestBase {
 
 
     @JsonTypeName("MyEnum_WrapperArray")
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include=JsonTypeInfo.As.WRAPPER_ARRAY)
-    enum MyEnum_WrapperArray{
-        TEST1,TEST2;
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_ARRAY)
+    enum MyEnum_WrapperArray {
+        TEST1, TEST2;
     }
 
     @JsonTypeName("MyEnum_Property")
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include=JsonTypeInfo.As.PROPERTY)
-    enum MyEnum_Property{
-        TEST1,TEST2;
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY)
+    enum MyEnum_Property {
+        TEST1, TEST2;
     }
 
     @JsonTypeName("MyEnum_WrapperObject")
-    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME,include=JsonTypeInfo.As.WRAPPER_OBJECT)
-    enum MyEnum_WrapperObject{
-        TEST1,TEST2;
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
+    enum MyEnum_WrapperObject {
+        TEST1, TEST2;
     }
 
     public void testEnumWithTypeInformationWrapperArray() throws Exception {
@@ -157,13 +147,13 @@ public class EnumGenerationTest extends SchemaTestBase {
         JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
         JsonSchema schema = generator.generateSchema(MyEnum_WrapperArray.class);
         Assert.assertTrue("Was expecting array schema", schema.isArraySchema());
-        JsonSchema firstItem  =schema.asArraySchema().getItems().asArrayItems().getJsonSchemas()[0];
+        JsonSchema firstItem = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas()[0];
         JsonSchema secondItem = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas()[1];
 
-        Assert.assertTrue("first item should be string schema",firstItem.isStringSchema());
+        Assert.assertTrue("first item should be string schema", firstItem.isStringSchema());
         Assert.assertTrue("second item should be string schema", secondItem.isStringSchema());
 
-        Assert.assertTrue("first item should be restricted to  MyEnum_WrapperArray",firstItem.asStringSchema().getEnums().contains("MyEnum_WrapperArray"));
+        Assert.assertTrue("first item should be restricted to  MyEnum_WrapperArray", firstItem.asStringSchema().getEnums().contains("MyEnum_WrapperArray"));
         Assert.assertTrue("second item should contain TEST1 restriction", secondItem.asStringSchema().getEnums().contains("TEST1"));
         Assert.assertTrue("second item should contain TEST2 restriction", secondItem.asStringSchema().getEnums().contains("TEST2"));
 
@@ -177,13 +167,13 @@ public class EnumGenerationTest extends SchemaTestBase {
         JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
         JsonSchema schema = generator.generateSchema(MyEnum_Property.class);
         Assert.assertTrue("Was expecting array schema", schema.isArraySchema());
-        JsonSchema firstItem  =schema.asArraySchema().getItems().asArrayItems().getJsonSchemas()[0];
+        JsonSchema firstItem = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas()[0];
         JsonSchema secondItem = schema.asArraySchema().getItems().asArrayItems().getJsonSchemas()[1];
 
-        Assert.assertTrue("first item should be string schema",firstItem.isStringSchema());
+        Assert.assertTrue("first item should be string schema", firstItem.isStringSchema());
         Assert.assertTrue("second item should be string schema", secondItem.isStringSchema());
 
-        Assert.assertTrue("first item should be restricted to  MyEnum_WrapperArray",firstItem.asStringSchema().getEnums().contains("MyEnum_Property"));
+        Assert.assertTrue("first item should be restricted to  MyEnum_WrapperArray", firstItem.asStringSchema().getEnums().contains("MyEnum_Property"));
         Assert.assertTrue("second item should contain TEST1 restriction", secondItem.asStringSchema().getEnums().contains("TEST1"));
         Assert.assertTrue("second item should contain TEST2 restriction", secondItem.asStringSchema().getEnums().contains("TEST2"));
 
@@ -197,10 +187,10 @@ public class EnumGenerationTest extends SchemaTestBase {
         JsonSchema schema = generator.generateSchema(MyEnum_WrapperObject.class);
         Assert.assertTrue("Was expecting Object schema", schema.isObjectSchema());
 
-        Assert.assertTrue("property name should be MyEnum_WrapperObject",schema.asObjectSchema().getProperties().containsKey("MyEnum_WrapperObject"));
+        Assert.assertTrue("property name should be MyEnum_WrapperObject", schema.asObjectSchema().getProperties().containsKey("MyEnum_WrapperObject"));
         JsonSchema propertySchema = schema.asObjectSchema().getProperties().get("MyEnum_WrapperObject");
 
-        Assert.assertTrue("property schema should be string schema",propertySchema.isStringSchema());
+        Assert.assertTrue("property schema should be string schema", propertySchema.isStringSchema());
         Assert.assertTrue("property schema should contain TEST1 restriction", propertySchema.asStringSchema().getEnums().contains("TEST1"));
         Assert.assertTrue("property schema should contain TEST2 restriction", propertySchema.asStringSchema().getEnums().contains("TEST2"));
     }

@@ -67,6 +67,20 @@ public class NumberSchema extends ValueTypeSchema {
         return new SingleJsonType(JsonFormatTypes.NUMBER);
     }
 
+    @Override
+    public JsonSchema clone() {
+        NumberSchema numberSchema = new NumberSchema();
+        cloneNumber(numberSchema);
+        return numberSchema;
+    }
+
+    protected void cloneNumber(NumberSchema numberSchema) {
+        cloneValue(numberSchema);
+        numberSchema.setExclusiveMaximum(getExclusiveMaximum());
+        numberSchema.setExclusiveMinimum(getExclusiveMinimum());
+        numberSchema.setMaximum(getMaximum());
+        numberSchema.setMinimum(getMinimum());
+    }
 
 
     @Override

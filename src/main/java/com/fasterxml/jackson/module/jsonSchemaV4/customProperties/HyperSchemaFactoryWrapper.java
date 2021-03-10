@@ -15,7 +15,6 @@ import com.fasterxml.jackson.module.jsonSchemaV4.factories.ObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.LinkDescriptionObject;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.SimpleTypeSchema;
 
 /**
@@ -29,8 +28,8 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
     private boolean ignoreDefaults = true;
 
     private HyperSchemaFactoryWrapper(){
-
     }
+
     public static class HyperSchemaFactoryWrapperFactory extends WrapperFactory {
         private boolean ignoreDefaults = true;
 
@@ -61,11 +60,11 @@ public class HyperSchemaFactoryWrapper extends SchemaFactoryWrapper {
     }
 
     @Override
-    public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
-        ArrayVisitor visitor = ((ArrayVisitor) super.expectArrayFormat(convertedType));
+    public JsonArrayFormatVisitor expectArrayFormat(JavaType arrayType) {
+        ArrayVisitor visitor = ((ArrayVisitor) super.expectArrayFormat(arrayType));
 
         // could add other properties here
-        addHyperlinks(visitor.getSchema(), convertedType);
+        addHyperlinks(visitor.getSchema(), arrayType);
 
         return visitor;
     }

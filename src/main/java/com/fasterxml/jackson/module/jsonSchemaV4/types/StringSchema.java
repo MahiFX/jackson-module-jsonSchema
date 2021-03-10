@@ -30,6 +30,7 @@ public class StringSchema extends ValueTypeSchema {
     @JsonProperty
     private String pattern;
 
+
     @Override
     public StringSchema asStringSchema() {
         return this;
@@ -50,6 +51,16 @@ public class StringSchema extends ValueTypeSchema {
     @Override
     public JSONType getType() {
         return new SingleJsonType(JsonFormatTypes.STRING);
+    }
+
+    @Override
+    public JsonSchema clone() {
+        StringSchema stringSchema = new StringSchema();
+        cloneValue(stringSchema);
+        stringSchema.setMaxLength(getMaxLength());
+        stringSchema.setMinLength(getMinLength());
+        stringSchema.setPattern(getPattern());
+        return stringSchema;
     }
 
     @Override

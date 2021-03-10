@@ -11,18 +11,18 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
  *
  * @author adb
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+@JsonTypeInfo(use = JsonTypeInfo.Id.CUSTOM, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public class ReferenceSchema extends SimpleTypeSchema {
     @JsonProperty
     protected String $ref;
 
-    public ReferenceSchema(String ref,JSONType referedSchemaType) {
+    public ReferenceSchema(String ref, JSONType referedSchemaType) {
         this.$ref = ref;
-        this.type=referedSchemaType;
+        this.type = referedSchemaType;
     }
 
-    public ReferenceSchema(){
-
+    public ReferenceSchema() {
+        this.type = new SingleJsonType(JsonFormatTypes.OBJECT);
     }
 
     @Override
@@ -31,14 +31,20 @@ public class ReferenceSchema extends SimpleTypeSchema {
         return type;
     }
 
-    @JsonIgnore
-    private JSONType type;
+    @Override
+    public JsonSchema clone() {
+        ReferenceSchema referenceSchema = new ReferenceSchema();
+        cloneSimple(referenceSchema);
+        referenceSchema.set$ref(get$ref());
+        referenceSchema.setType(getType());
+        return referenceSchema;
+    }
 
+    private JSONType type;
 
     public void setType(JSONType type) {
         this.type = type;
     }
-
 
     @Override
     public String get$ref() {

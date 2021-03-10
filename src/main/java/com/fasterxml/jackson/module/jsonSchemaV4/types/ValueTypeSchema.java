@@ -65,6 +65,12 @@ public abstract class ValueTypeSchema extends SimpleTypeSchema {
         this.format = format;
     }
 
+    protected void cloneValue(ValueTypeSchema valueSchema) {
+        cloneSimple(valueSchema);
+        valueSchema.setEnums(getEnums());
+        valueSchema.setFormat(getFormat());
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;

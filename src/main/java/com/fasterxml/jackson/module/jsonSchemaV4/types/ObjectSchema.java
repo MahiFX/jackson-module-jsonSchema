@@ -106,6 +106,23 @@ public class ObjectSchema extends ContainerTypeSchema {
     }
 
     @Override
+    public ObjectSchema clone() {
+        ObjectSchema objectSchema = new ObjectSchema();
+        cloneObject(objectSchema);
+        return objectSchema;
+    }
+
+    protected void cloneObject(ObjectSchema objectSchema) {
+        cloneContainer(objectSchema);
+        objectSchema.setDependencies(getDependencies());
+        objectSchema.setAdditionalProperties(getAdditionalProperties());
+        objectSchema.setMaxProperties(getMaxProperties());
+        objectSchema.setMinProperties(getMinProperties());
+        objectSchema.setProperties(getProperties());
+        objectSchema.setPatternProperties(getPatternProperties());
+    }
+
+    @Override
     public boolean isObjectSchema() {
         return true;
     }

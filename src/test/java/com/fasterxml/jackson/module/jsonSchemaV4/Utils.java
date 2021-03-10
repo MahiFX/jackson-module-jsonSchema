@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.load.Dereferencing;
 import com.github.fge.jsonschema.core.load.configuration.LoadingConfiguration;
@@ -61,7 +60,8 @@ public class Utils {
     }
 
     public static JsonNode generateSchemaFrom(Class<?> clazz, ObjectMapper mapper) throws Exception {
-        Object jacksonSchema = schema(clazz, mapper);
+        JsonSchema jacksonSchema = schema(clazz, mapper);
+        jacksonSchema.setId("http://fasterxml.com/");
         String schemaInString = Utils.toJson(jacksonSchema, jacksonSchema.getClass(), mapper);
         System.out.println(schemaInString);
         return JsonLoader.fromString(schemaInString);

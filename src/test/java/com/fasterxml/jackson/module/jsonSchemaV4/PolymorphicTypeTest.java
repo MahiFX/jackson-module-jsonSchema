@@ -117,7 +117,7 @@ public class PolymorphicTypeTest {
 
     public static void containsDefinitions(JsonSchema schema, Set<String> definitions) {
         Assert.assertNotNull("definitions should not be null", schema.getDefinitions());
-        Assert.assertEquals("there should be" + definitions.size() + "sub schema", definitions.size(), schema.getDefinitions().size());
+        Assert.assertEquals("there should be " + definitions.size() + " sub schema", definitions.size(), schema.getDefinitions().size());
         for (String def : definitions) {
             Assert.assertTrue("should contain " + def + " schema", schema.getDefinitions().containsKey(def));
         }
@@ -134,8 +134,6 @@ public class PolymorphicTypeTest {
         Assert.assertTrue("JSONSubType schema should be polymorhpic", jsonSubTypeSchema.isPolymorhpicObjectSchema());
         ReferenceSchema[] jsonSubTypeRef = jsonSubTypeSchema.asPolymorphicObjectSchema().getAnyOf();
         verifyAnyOfContent(jsonSubTypeRef, JSON_SUB_TYPES);
-
-
     }
 
     public static boolean containsReference(ReferenceSchema[] refSchemas, String name) {

@@ -10,17 +10,15 @@ import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
-
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 
 public class ObjectVisitor extends JsonObjectFormatVisitor.Base
         implements JsonSchemaProducer {
     protected final ObjectSchema schema;
-    private final JavaType originalType;
 
 
-    public ObjectVisitor(ObjectSchema schema,JavaType originalType) {
+    public ObjectVisitor(ObjectSchema schema) {
         this.schema = schema;
-        this.originalType = originalType;
     }
 
     /*
@@ -68,37 +66,47 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
             throw new IllegalArgumentException("Null property");
         }
 
-        // check if we've seen this argument's sub-schema already and return a reference-schema if we have
-        SchemaGenerationContext context = SchemaGenerationContext.get();
-        if(context.isVisited(prop.getType(),false)){
-            return context.getReferenceSchemaForVisitedType(prop.getType());
-        }
+        JavaType propType = prop.getType();
+        JsonSerializer<Object> handler = getSer(prop);
+        return propertySchema(handler, propType);
 
-        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
-        JsonSerializer<Object> ser = getSer(prop);
-        if (ser != null) {
-            JavaType type = prop.getType();
-            if (type == null) {
-                throw new IllegalStateException("Missing type for property '" + prop.getName() + "'");
-            }
-            ser.acceptJsonFormatVisitor(visitor, type);
 
-        }
-        return visitor.finalSchema();
     }
 
-    protected JsonSchema propertySchema(JsonFormatVisitable handler, JavaType propertyTypeHint)
+    protected JsonSchema propertySchema(JsonFormatVisitable handler, JavaType propType)
             throws JsonMappingException {
         // check if we've seen this argument's sub-schema already and return a reference-schema if we have
         SchemaGenerationContext context = SchemaGenerationContext.get();
-        if(context.isVisited(propertyTypeHint,false)){
-            return context.getReferenceSchemaForVisitedType(propertyTypeHint);
+        String definitionKey = context.getDefinitionKeyForType(propType);
+        if (context.isVisited(propType) && SchemaGenerationContext.isNotJvmType(propType)) {
+            ReferenceSchema referenceSchemaForVisitedType = context.getReferenceSchemaForVisitedType(propType);
+            if (context.getReferenceCount(propType) == 1 && (schema.getDefinitions() == null || !schema.getDefinitions().containsKey(definitionKey))) {
+                context.createDefinitionForNonPolymorphic(propType, schema);
+            }
+            return referenceSchemaForVisitedType;
         }
 
+        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper();
 
-        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
-        handler.acceptJsonFormatVisitor(visitor, propertyTypeHint);
-        return visitor.finalSchema();
+        boolean wasFirst = !context.isVisited(propType);
+
+        if (handler != null) {
+            handler.acceptJsonFormatVisitor(visitor, propType);
+        }
+
+        JsonSchema jsonSchema = visitor.finalSchema();
+        if (SchemaGenerationContext.isNotJvmType(propType)) {
+            if (!(jsonSchema instanceof ReferenceSchema)) {
+                context.setSchemaForNonPolymorphicType(propType, jsonSchema);
+                context.setFormatTypeForVisitedType(propType, jsonSchema.getType());
+            }
+            if (wasFirst && context.getReferenceCount(propType) > 0 && (schema.getDefinitions() == null || !schema.getDefinitions().containsKey(definitionKey))) {
+                context.createDefinitionForNonPolymorphic(propType, schema);
+                jsonSchema = context.getReferenceSchemaForVisitedType(propType);
+            }
+        }
+
+        return jsonSchema;
     }
 
     protected JsonSerializer<Object> getSer(BeanProperty prop)

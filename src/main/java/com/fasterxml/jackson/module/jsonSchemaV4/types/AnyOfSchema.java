@@ -12,8 +12,6 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
 public class AnyOfSchema extends JsonSchema {
 
-    public AnyOfSchema() {
-    }
     public AnyOfSchema(ReferenceSchema[] anyOf) {
         this.anyOf = anyOf;
     }
@@ -22,6 +20,11 @@ public class AnyOfSchema extends JsonSchema {
     @JsonIgnore
     public JsonSchema.JSONType getType() {
         return new SingleJsonType(JsonFormatTypes.NULL);
+    }
+
+    @Override
+    public JsonSchema clone() {
+        return new AnyOfSchema(anyOf);
     }
 
     public void setAnyOf(ReferenceSchema[] anyOf) {

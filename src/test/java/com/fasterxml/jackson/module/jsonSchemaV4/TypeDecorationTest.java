@@ -226,6 +226,6 @@ public class TypeDecorationTest {
         JsonSchema schema =generator.generateSchema(ClassAsWrapperObject.class);
 
         String json =toJson(schema, schema.getClass(), new ObjectMapper());
-        Assert.assertEquals("{\"type\":\"object\",\"properties\":{\"ClassAsWrapperObject\":{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:ClassAsWrapperObject\",\"type\":\"object\",\"properties\":{\"someProperty\":{\"type\":\"string\"}}}},\"required\":[\"ClassAsWrapperObject\"]}",json);
+        Assert.assertEquals("{\"type\":\"object\",\"properties\":{\"ClassAsWrapperObject\":{\"id\":\"#com:fasterxml:jackson:module:jsonSchemaV4:ClassAsWrapperObject\",\"type\":\"object\",\"properties\":{\"someProperty\":{\"type\":\"string\"}}}},\"required\":[\"ClassAsWrapperObject\"]}",json);
     }
 }

@@ -47,9 +47,9 @@ public class TestJDKTypes extends SchemaTestBase {
         assertEquals("{\"type\":\"number\"}", MAPPER.writeValueAsString(schema));
 
         schema = generator.generateSchema(TestObj.class);
-        assertEquals("{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestJDKTypes:TestObj\",\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"number\"}},\"required\":[\"value\"]}",MAPPER.writeValueAsString(schema));
+        assertEquals("{\"id\":\"#com:fasterxml:jackson:module:jsonSchemaV4:TestJDKTypes:TestObj\",\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"number\"}},\"required\":[\"value\"]}",MAPPER.writeValueAsString(schema));
 
         schema = generator.generateSchema(TestObj[].class);
-        assertEquals("{\"type\":\"array\",\"items\":{\"id\":\"urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestJDKTypes:TestObj\",\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"number\"}},\"required\":[\"value\"]}}", MAPPER.writeValueAsString(schema));
+        assertEquals("{\"type\":\"array\",\"items\":{\"id\":\"#com:fasterxml:jackson:module:jsonSchemaV4:TestJDKTypes:TestObj\",\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"number\"}},\"required\":[\"value\"]}}", MAPPER.writeValueAsString(schema));
     }
 }

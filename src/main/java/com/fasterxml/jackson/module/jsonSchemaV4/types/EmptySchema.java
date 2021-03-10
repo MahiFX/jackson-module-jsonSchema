@@ -17,5 +17,10 @@ public class EmptySchema extends JsonSchema {
         return new SingleJsonType(JsonFormatTypes.ANY);
     }
 
+    @Override
+    public JsonSchema clone() {
+        return new EmptySchema();
+    }
+
 
 }

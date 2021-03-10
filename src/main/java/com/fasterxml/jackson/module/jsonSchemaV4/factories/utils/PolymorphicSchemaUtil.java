@@ -16,6 +16,8 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.*;
 
+import static com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext.uriSafe;
+
 /**
  * Created by zoliszel on 16/06/2015.
  */
@@ -60,21 +62,23 @@ public class PolymorphicSchemaUtil {
 
     public static final String NUMBER_WITH_NON_NUMERIC_VALUES = "___NUMBER_WITH_NON_NUMERIC_VALUES___";
 
-    private static final String DEFINITION_PREFIX = "#/definitions/";
+    public static final String DEFINITION_PREFIX = "#/definitions/";
 
-    private static JsonSchema getNumberSchemaWithAllowedString() {
+    private static JsonSchema getNumberSchemaWithAllowedString(SchemaGenerationContext context) {
         NumberSchema numberSchema = new NumberSchema();
-        numberSchema.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE));
+        numberSchema.setId(context.javaTypeToId(NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE));
 
         StringSchema allowedStringValues = new StringSchema();
-        allowedStringValues.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE));
+        allowedStringValues.setId(context.javaTypeToId(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE));
         allowedStringValues.setEnums(ALLOWED_NON_NUMERIC_VALUES);
 
         Map<String, JsonSchema> typesToWrap = new HashMap<>();
         typesToWrap.put(NUMBER_WITH_NON_NUMERIC_NUMBER_REFERENCE, numberSchema);
         typesToWrap.put(NUMBER_WITH_NON_NUMERIC_ALLOWED_STRING_VALUES_REFERENCE, allowedStringValues);
+
         PolymorphicObjectSchema wrappedSchema = constructPolymorphicSchema(typesToWrap, PolymorphicObjectSchema.Type.ONE_OF);
-        wrappedSchema.setId(SchemaGenerationContext.javaTypeToUrn(NUMBER_WITH_NON_NUMERIC_VALUES));
+        wrappedSchema.setId(context.javaTypeToId(NUMBER_WITH_NON_NUMERIC_VALUES));
+        wrappedSchema.setTypes(new JsonFormatTypes[]{JsonFormatTypes.NUMBER, JsonFormatTypes.STRING});
 
         ReferenceSchema referenceSchema = new ReferenceSchema(DEFINITION_PREFIX + NUMBER_WITH_NON_NUMERIC_VALUES, wrappedSchema.getType());
         referenceSchema.setDefinitions(new HashMap<>());
@@ -134,9 +138,9 @@ public class PolymorphicSchemaUtil {
     public interface PolymorphiSchemaDefinition {
         JsonSchema getPolymorphicObjectSchema();
 
-        String getOrigianlTypeName();
+        String getDefinitionRef();
 
-        String getDefinitionsReference();
+        String getDefinitionKey();
     }
 
 
@@ -232,10 +236,9 @@ public class PolymorphicSchemaUtil {
                     subTypeName = subTypeName + POLYMORPHIC_TYPE_NAME_SUFFIX;
                 }
 
-
                 subSchemas[i] = subSchema;
 
-                definitions.put(subTypeName, subSchemas[i]);
+                definitions.put(uriSafe(subTypeName), subSchemas[i]);
             }
 
             final PolymorphicObjectSchema wrapperSchema = constructPolymorphicSchema(definitions, PolymorphicObjectSchema.Type.ANY_OF);
@@ -247,13 +250,13 @@ public class PolymorphicSchemaUtil {
                 }
 
                 @Override
-                public String getOrigianlTypeName() {
-                    return originalTypeName;
+                public String getDefinitionRef() {
+                    return DEFINITION_PREFIX + uriSafe(originalTypeName);
                 }
 
                 @Override
-                public String getDefinitionsReference() {
-                    return DEFINITION_PREFIX + originalTypeName;
+                public String getDefinitionKey() {
+                    return uriSafe(originalTypeName);
                 }
             };
         }
@@ -264,24 +267,39 @@ public class PolymorphicSchemaUtil {
         return subTypes.size() > 0;
     }
 
-    public static JsonSchema propagateDefinitionsUp(JsonSchema node) {
+    public static void propagateDefinitionsUp(JsonSchema node) {
         Map<String, JsonSchema> allDefinitions = extractDefinitions(node, new HashMap<>());
         if (!allDefinitions.isEmpty()) {
             node.setDefinitions(allDefinitions);
         }
-        return node;
-
     }
 
-    protected JsonSchema schema(Type t) throws JsonMappingException {
+    private static final Map<Type, SchemaGenerationContext> typeContexts = new HashMap<>();
+
+    public static JsonSchema schema(Type t) throws JsonMappingException {
         SchemaGenerationContext context = SchemaGenerationContext.get();
-        ObjectMapper mapper = context.getMapper().copy();
-        SchemaFactoryWrapper visitor = context.getNewSchemaFactoryWrapper(null);
-        mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
-        return visitor.finalSchema();
+        boolean createdContext = false;
+        if (!typeContexts.containsKey(t)) {
+            // We only want to create a new context once per type when recursing
+            SchemaGenerationContext newContext = context.copy();
+            typeContexts.put(t, newContext);
+            createdContext = true;
+            SchemaGenerationContext.set(newContext);
+        }
+        try {
+            ObjectMapper mapper = context.getMapper().copy();
+            SchemaFactoryWrapper visitor = context.getNewSchemaFactoryWrapper();
+            mapper.acceptJsonFormatVisitor(mapper.constructType(t), visitor);
+            return visitor.finalSchema();
+        } finally {
+            SchemaGenerationContext.set(context);
+            if (createdContext) {
+                typeContexts.remove(t);
+            }
+        }
     }
 
-    public static JsonSchema wrapNonNumericTypes(JsonSchema originalSchema) {
+    public static JsonSchema wrapNonNumericTypes(JsonSchema originalSchema, SchemaGenerationContext context) {
         if (!originalSchema.isNumberSchema()) {
             return originalSchema;
         }
@@ -298,7 +316,7 @@ public class PolymorphicSchemaUtil {
             return numberSchema;
         }
 
-        return getNumberSchemaWithAllowedString();
+        return getNumberSchemaWithAllowedString(context);
 
     }
 

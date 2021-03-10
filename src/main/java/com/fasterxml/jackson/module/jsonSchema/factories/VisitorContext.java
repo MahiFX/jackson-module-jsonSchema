@@ -4,8 +4,7 @@ import com.fasterxml.jackson.databind.JavaType;
 
 import java.util.HashSet;
 
-public class VisitorContext
-{
+public class VisitorContext {
     private final HashSet<JavaType> seenSchemas = new HashSet<JavaType>();
 
     public String addSeenSchemaUri(JavaType aSeenSchema) {
@@ -21,6 +20,6 @@ public class VisitorContext
     }
 
     public String javaTypeToUrn(JavaType jt) {
-        return "urn:jsonschema:" + jt.toCanonical().replace('.', ':').replace('$', ':');
+        return "#" + jt.toCanonical().replace('.', ':').replace('$', ':');
     }
 }

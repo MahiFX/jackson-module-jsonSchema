@@ -22,7 +22,7 @@ public class TestTypeGeneration extends SchemaTestBase {
         JsonSchemaGenerator generator = new JsonSchemaGenerator.Builder().withObjectMapper(MAPPER).build();
         JsonSchema jsonSchema = generator.generateSchema(Issue14Bean.class);
         String json = MAPPER.writeValueAsString(jsonSchema).replace('"', '\'');
-        final String EXP = "{'id':'urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestTypeGeneration:Issue14Bean','type':'object','properties':{'date':{'type':'integer','format':'utc-millisec'}}}";
+        final String EXP = "{'id':'#com:fasterxml:jackson:module:jsonSchemaV4:TestTypeGeneration:Issue14Bean','type':'object','properties':{'date':{'type':'integer','format':'utc-millisec'}}}";
         assertEquals(EXP, json);
     }
 

@@ -2,12 +2,10 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema.Items;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 
@@ -104,7 +102,7 @@ public class TestGenerateJsonSchema
     }
 
     public static FilterProvider secretFilterProvider = new SimpleFilterProvider()
-            .addFilter("filteredBean", SimpleBeanPropertyFilter.filterOutAllExcept(new String[]{"obvious" }));
+            .addFilter("filteredBean", SimpleBeanPropertyFilter.filterOutAllExcept("obvious"));
 
     static class StringMap extends HashMap<String, String> {
     }
@@ -155,7 +153,7 @@ public class TestGenerateJsonSchema
         assertTrue(prop3.isArraySchema());
         assertFalse(jsonSchema.asObjectSchema().getRequired().contains("property3"));
         assertNull(prop3.getReadonly());
-        Items items = (Items) prop3.asArraySchema().getItems();
+        Items items = prop3.asArraySchema().getItems();
         assertTrue(items.isSingleItems());
         JsonSchema itemType = items.asSingleItems().getSchema();
         assertNotNull(itemType);
@@ -166,7 +164,7 @@ public class TestGenerateJsonSchema
         assertTrue(prop4.isArraySchema());
         assertFalse(jsonSchema.asObjectSchema().getRequired().contains("property4"));
         assertNull(prop4.getReadonly());
-        items = (Items) prop4.asArraySchema().getItems();
+        items = prop4.asArraySchema().getItems();
         assertTrue(items.isSingleItems());
         itemType = items.asSingleItems().getSchema();
         assertNotNull(itemType);
@@ -222,7 +220,7 @@ public class TestGenerateJsonSchema
         assertFalse(result.containsKey("items"));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public void testSchemaId() throws Exception {
         JsonSchema jsonSchema = GENERATOR.generateSchema(BeanWithId.class);
         Map<String, Object> result = writeAndMap(MAPPER, jsonSchema);
@@ -230,7 +228,7 @@ public class TestGenerateJsonSchema
         assertEquals(new HashMap() {
             {
                 put("type", "object");
-                put("id", "urn:jsonschema:com:fasterxml:jackson:module:jsonSchemaV4:TestGenerateJsonSchema:BeanWithId");
+                put("id", "#com:fasterxml:jackson:module:jsonSchemaV4:TestGenerateJsonSchema:BeanWithId");
                 put("properties",
                         new HashMap() {
                             {

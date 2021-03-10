@@ -14,8 +14,8 @@
     <groupId>com.fasterxml.jackson.module</groupId>
     <artifactId>jackson-module-jsonSchema</artifactId>
     <name>jackson-module-jsonSchema</name>
-    <version>2.12.1-mahi</version>
-    <packaging>bundle</packaging>
+    <version>2.12.1.mahi2</version>
+    <packaging>jar</packaging>
     <description>Add-on module for Jackson (http://jackson.codehaus.org) to support
         JSON Schema (http://tools.ietf.org/html/draft-zyp-json-schema-03) version 3 generation.
     </description>
@@ -124,10 +124,56 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <extensions>false</extensions>
+                <configuration>
+                    <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>false</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>releases</id>
+            <name>releases</name>
+            <url>http://build.mahifx.com/nexus/content/repositories/thirdparty</url>
+        </repository>
+
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>snapshots</id>
+            <name>snapshots</name>
+            <url>http://build.mahifx.com/nexus/content/repositories/thirdpartysnapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 </project>

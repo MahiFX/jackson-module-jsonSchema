@@ -1,6 +1,5 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
-import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.*;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.*;
@@ -43,8 +42,8 @@ public class FormatVisitorFactory {
     }
 
 */
-    public JsonArrayFormatVisitor arrayFormatVisitor(ArraySchema arraySchema, JavaType convertedType) {
-        ArrayVisitor visitor = new ArrayVisitor(arraySchema, convertedType);
+    public JsonArrayFormatVisitor arrayFormatVisitor(ArraySchema arraySchema) {
+        ArrayVisitor visitor = new ArrayVisitor(arraySchema);
         return visitor;
     }
 
@@ -54,8 +53,8 @@ public class FormatVisitorFactory {
         return v;
     }
 
-    protected JsonObjectFormatVisitor objectFormatVisitor(ObjectSchema objectSchema, JavaType convertedType) {
-        ObjectVisitor v = new ObjectVisitor(objectSchema, convertedType);
+    protected JsonObjectFormatVisitor objectFormatVisitor(ObjectSchema objectSchema) {
+        ObjectVisitor v = new ObjectVisitor(objectSchema);
         return v;
     }
 
@@ -86,7 +85,7 @@ public class FormatVisitorFactory {
         return new StringVisitor(stringSchema);
     }
 
-    public PolymorphicObjectVisitor polymorphicObjectVisitor(PolymorphicObjectSchema s, JavaType type, SerializerProvider provider) {
-        return new PolymorphicObjectVisitor(s, type, provider);
+    public PolymorphicObjectVisitor polymorphicObjectVisitor(PolymorphicObjectSchema s, SerializerProvider provider) {
+        return new PolymorphicObjectVisitor(s, provider);
     }
 }

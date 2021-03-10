@@ -1,33 +1,17 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
-import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.BeanProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 import com.fasterxml.jackson.databind.annotation.JsonTypeResolver;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.BooleanSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ContainerTypeSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.IntegerSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.JsonTypesDeserializer;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.NullSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.SimpleTypeSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.UnionTypeSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ValueTypeSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.*;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -91,7 +75,7 @@ import java.util.Map;
  * @author jphelan
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonTypeInfo(use = Id.CUSTOM, include = As.EXISTING_PROPERTY, property = "type",visible = true)
+@JsonTypeInfo(use = Id.CUSTOM, include = As.EXISTING_PROPERTY, property = "type", visible = true)
 @JsonTypeIdResolver(JsonSchemaIdResolver.class)
 @JsonTypeResolver(JsonSchemaTypeResolverBuilder.class)
 public abstract class JsonSchema {
@@ -292,7 +276,9 @@ public abstract class JsonSchema {
     // @JsonTypeId
     public abstract JsonSchema.JSONType getType();
 
-    public JsonSchema(){
+    public abstract JsonSchema clone();
+
+    public JsonSchema() {
         setType(getType());
     }
 
@@ -483,6 +469,16 @@ public abstract class JsonSchema {
         return new ObjectSchema();
     }
 
+    protected void cloneSchema(JsonSchema arraySchema) {
+        arraySchema.setDefinitions(getDefinitions());
+        arraySchema.set$schema(get$schema());
+        arraySchema.setDescription(getDescription());
+        arraySchema.setId(getId());
+        arraySchema.setReadonly(getReadonly());
+        arraySchema.set$ref(get$ref());
+        arraySchema.setType(getType());
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;
@@ -495,7 +491,7 @@ public abstract class JsonSchema {
         return equals(getId(), getId())
 
                 // 27-Apr-2015, tatu: Should not need to check type explicitly
-                                 && equals(getType(), getType())
+                && equals(getType(), getType())
                 && equals(getReadonly(), that.getReadonly())
                 && equals(get$ref(), that.get$ref())
                 && equals(get$schema(), that.get$schema())
@@ -506,7 +502,7 @@ public abstract class JsonSchema {
      * A utility method allowing to easily chain calls to equals() on members
      * without taking any risk regarding the ternary operator precedence.
      *
-     * @return (object1 == null ? object2 == null : object1.equals(object2))
+     * @return (object1 = = null ? object2 = = null : object1.equals ( object2))
      */
     protected static boolean equals(Object object1, Object object2) {
         if (object1 == null) {
@@ -548,24 +544,24 @@ public abstract class JsonSchema {
 
     public static abstract class JSONType {
 
-        public boolean isSingleJSONType(){
+        public boolean isSingleJSONType() {
             return false;
         }
 
-        public boolean isArrayJSONType(){
+        public boolean isArrayJSONType() {
             return false;
         }
 
-        public SingleJsonType asSingleJsonType(){
+        public SingleJsonType asSingleJsonType() {
             return null;
         }
 
-        public ArrayJsonType asArrayJsonType(){
+        public ArrayJsonType asArrayJsonType() {
             return null;
         }
     }
 
-    public static class SingleJsonType extends JSONType{
+    public static class SingleJsonType extends JSONType {
 
         @JsonIgnore
         private JsonFormatTypes formatType;
@@ -616,18 +612,19 @@ public abstract class JsonSchema {
         }
     }
 
-    public static class ArrayJsonType extends JSONType{
+    public static class ArrayJsonType extends JSONType {
 
         public ArrayJsonType(JsonFormatTypes[] formatTypes) {
-            Arrays.sort(formatTypes);
-            this.formatTypes = formatTypes;
+            HashSet<JsonFormatTypes> deDuped = new HashSet<>(Arrays.asList(formatTypes));
+            this.formatTypes = deDuped.toArray(new JsonFormatTypes[0]);
+            Arrays.sort(this.formatTypes);
         }
 
         @JsonIgnore
-        private JsonFormatTypes[]  formatTypes = null;
+        private JsonFormatTypes[] formatTypes;
 
         @JsonValue
-        public JsonFormatTypes[]  getFormatTypes() {
+        public JsonFormatTypes[] getFormatTypes() {
             return formatTypes;
         }
 

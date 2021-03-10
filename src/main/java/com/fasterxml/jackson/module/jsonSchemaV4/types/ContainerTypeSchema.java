@@ -45,6 +45,11 @@ public abstract class ContainerTypeSchema extends SimpleTypeSchema {
     }
 
 
+    protected void cloneContainer(ContainerTypeSchema arraySchema) {
+        arraySchema.setEnums(getEnums());
+        cloneSimple(arraySchema);
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;

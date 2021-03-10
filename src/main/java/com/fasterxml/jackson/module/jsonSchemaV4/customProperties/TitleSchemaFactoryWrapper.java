@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonArrayFormatVisitor;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ArrayVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
@@ -32,6 +33,7 @@ public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
     ;
 
     private TitleSchemaFactoryWrapper() {
+        super();
     }
 
     @Override
@@ -45,11 +47,11 @@ public class TitleSchemaFactoryWrapper extends SchemaFactoryWrapper {
     }
 
     @Override
-    public JsonArrayFormatVisitor expectArrayFormat(JavaType convertedType) {
-        ArrayVisitor visitor = ((ArrayVisitor) super.expectArrayFormat(convertedType));
+    public JsonArrayFormatVisitor expectArrayFormat(JavaType arrayType) {
+        ArrayVisitor visitor = ((ArrayVisitor) super.expectArrayFormat(arrayType));
 
         // could add other properties here
-        addTitle(visitor.getSchema(), convertedType);
+        addTitle(visitor.getSchema(), arrayType);
 
         return visitor;
     }

@@ -90,6 +90,17 @@ public class ArraySchema extends ContainerTypeSchema {
         return new SingleJsonType(JsonFormatTypes.ARRAY);
     }
 
+    @Override
+    public ArraySchema clone() {
+        ArraySchema arraySchema = new ArraySchema();
+        cloneContainer(arraySchema);
+        arraySchema.setMaxItems(getMaxItems());
+        arraySchema.setMinItems(getMinItems());
+        arraySchema.setItems(getItems());
+        arraySchema.setAdditionalItems(getAdditionalItems());
+        arraySchema.setUniqueItems(getUniqueItems());
+        return arraySchema;
+    }
 
 
     public Boolean getUniqueItems() {

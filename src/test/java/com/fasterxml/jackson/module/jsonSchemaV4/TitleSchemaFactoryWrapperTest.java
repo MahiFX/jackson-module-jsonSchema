@@ -2,8 +2,8 @@ package com.fasterxml.jackson.module.jsonSchemaV4;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.customProperties.TitleSchemaFactoryWrapper;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import junit.framework.TestCase;
 
 public class TitleSchemaFactoryWrapperTest extends TestCase {
@@ -26,9 +26,9 @@ public class TitleSchemaFactoryWrapperTest extends TestCase {
     }
 
     public void testAddingTitle() throws Exception {
-        JsonSchemaGenerator schemaGenerator= new JsonSchemaGenerator.Builder().withWrapperFactory(new TitleSchemaFactoryWrapper.TitleSchemaFactoryWrapperFactory()).build();
+        JsonSchemaGenerator schemaGenerator = new JsonSchemaGenerator.Builder().withWrapperFactory(new TitleSchemaFactoryWrapper.TitleSchemaFactoryWrapperFactory()).build();
 
-        JsonSchema schema =schemaGenerator.generateSchema(Person.class);
+        JsonSchema schema = schemaGenerator.generateSchema(Person.class);
 
         assertTrue("schema should be an objectSchema.", schema.isObjectSchema());
         String title = schema.asObjectSchema().getTitle();

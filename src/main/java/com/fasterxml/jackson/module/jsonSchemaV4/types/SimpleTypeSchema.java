@@ -73,6 +73,14 @@ public abstract class SimpleTypeSchema extends JsonSchema {
         this.pathStart = pathStart;
     }
 
+    protected void cloneSimple(SimpleTypeSchema arraySchema) {
+        cloneSchema(arraySchema);
+        arraySchema.setDefault(getDefault());
+        arraySchema.setLinks(getLinks());
+        arraySchema.setPathStart(getPathStart());
+        arraySchema.setTitle(getTitle());
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) return true;

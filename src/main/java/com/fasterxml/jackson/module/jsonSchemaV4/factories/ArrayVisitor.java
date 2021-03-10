@@ -7,22 +7,21 @@ import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitable;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.TypeDecorationUtils;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
+
+import java.util.HashMap;
 
 
 public class ArrayVisitor extends JsonArrayFormatVisitor.Base
         implements JsonSchemaProducer {
 
-    private final JavaType originalType;
-
     protected ArraySchema schema;
 
-
-
-    public ArrayVisitor(ArraySchema schema,JavaType originalType) {
+    public ArrayVisitor(ArraySchema schema) {
         this.schema = schema;
-        this.originalType = originalType;
     }
 
     /*
@@ -44,19 +43,24 @@ public class ArrayVisitor extends JsonArrayFormatVisitor.Base
 
     @Override
     public void itemsFormat(JsonFormatVisitable handler, JavaType contentType) throws JsonMappingException {
-        // An array of object matches any values, thus we leave the schema empty.
         SchemaGenerationContext context = SchemaGenerationContext.get();
-        if(context.isVisited(contentType,false)) {
+        if (context.isVisited(contentType)) {
+            //We should have a definition ready to go, just set a ref
             schema.setItemsSchema(context.getReferenceSchemaForVisitedType(contentType));
-            return;
+        } else {
+            SchemaFactoryWrapper visitor = context.getNewSchemaFactoryWrapper();
+            handler.acceptJsonFormatVisitor(visitor, contentType);
+            JsonSchema itemSchema = visitor.finalSchema();
+            schema.setItemsSchema(itemSchema);
+            context.setVisitedAsNonPolymorphic(contentType);
+            if (!(itemSchema instanceof ReferenceSchema)) {
+                context.setSchemaForNonPolymorphicType(contentType, itemSchema);
+            }
         }
-        SchemaFactoryWrapper visitor = SchemaGenerationContext.get().getNewSchemaFactoryWrapper(getProvider());
-        handler.acceptJsonFormatVisitor(visitor, contentType);
-        schema.setItemsSchema(visitor.finalSchema());
     }
 
     @Override
-    public void itemsFormat(JsonFormatTypes format) throws JsonMappingException {
+    public void itemsFormat(JsonFormatTypes format) {
         schema.setItemsSchema(JsonSchema.minimalForFormat(format));
     }
 

@@ -1,7 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 
 import java.lang.annotation.Annotation;
@@ -141,6 +140,18 @@ public class HyperSchema extends JsonSchema {
         return null;
     }
 
+    @Override
+    public JsonSchema clone() {
+        HyperSchema hyperSchema = new HyperSchema();
+        hyperSchema.contentEncoding = contentEncoding;
+        hyperSchema.readOnly = readOnly;
+        hyperSchema.links = links;
+        hyperSchema.fragmentResolution = fragmentResolution;
+        hyperSchema.mediaType = mediaType;
+        hyperSchema.pathStart = pathStart;
+        cloneSchema(hyperSchema);
+        return hyperSchema;
+    }
 
 
     @Override

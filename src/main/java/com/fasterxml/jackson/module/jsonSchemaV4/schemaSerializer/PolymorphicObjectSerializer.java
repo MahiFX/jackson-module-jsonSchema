@@ -1,13 +1,7 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.BeanDescription;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializationConfig;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatVisitorWrapper;
 import com.fasterxml.jackson.databind.module.SimpleSerializers;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
@@ -15,7 +9,6 @@ import com.fasterxml.jackson.module.jsonSchemaV4.factories.PolymorphicJsonFormat
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.PolymorphicObjectVisitor;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -39,16 +32,16 @@ public class PolymorphicObjectSerializer extends SimpleSerializers {
         return null;
     }
 
-    private static class PolyMorphicBeanSerializer extends JsonSerializer {
+    public static class PolyMorphicBeanSerializer extends JsonSerializer {
         @Override
-        public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers) throws IOException, JsonProcessingException {
+        public void serialize(Object value, JsonGenerator gen, SerializerProvider serializers) {
             throw new UnsupportedOperationException("Can't serializer actual JSON object");
         }
 
         @Override
         public void acceptJsonFormatVisitor(JsonFormatVisitorWrapper visitor, JavaType typeHint)
                 throws JsonMappingException {
-            if (visitor == null || !(visitor instanceof PolymorphicJsonFormatVisitorWrapper)) {
+            if (!(visitor instanceof PolymorphicJsonFormatVisitorWrapper)) {
                 return;
             }
 

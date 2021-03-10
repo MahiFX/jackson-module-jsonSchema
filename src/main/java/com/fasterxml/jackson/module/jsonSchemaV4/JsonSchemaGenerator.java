@@ -12,6 +12,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 
 /**
  * Main entrypoint for the V4 generator. Creation is handled through @see JsonSchemaGenerator.Builder()
@@ -20,9 +21,11 @@ import java.lang.reflect.Type;
  */
 public class JsonSchemaGenerator {
 
-    public static final String SCHEMA_V4="http://json-schema.org/draft-04/schema#";
+    public static final String SCHEMA_V4 = "http://json-schema.org/draft-04/schema#";
 
-    public static final String HYPER_SCHEMA_V4="http://json-schema.org/draft-04/hyper-schema#";
+    public static final String HYPER_SCHEMA_V4 = "http://json-schema.org/draft-04/hyper-schema#";
+
+    private final URI schemaBaseURI;
 
 
     /**
@@ -30,7 +33,7 @@ public class JsonSchemaGenerator {
      * JsonSchemaGenerator generator=new JsonSchemaGenerator.Builder().build();
      * generator.generateSchema(SomeClass.class)
      */
-    public static class Builder{
+    public static class Builder {
         protected ObjectMapper mapper;
 
         protected WrapperFactory wrapperFactory;
@@ -41,57 +44,64 @@ public class JsonSchemaGenerator {
 
         protected boolean withSchemaType;
 
-        protected boolean withAdditonalProperties=true;
+        protected boolean withAdditonalProperties = true;
+
+        private URI schemaBaseURI;
 
         /**
          * Optional
-         * @param Use the ObjectMapper provided. Please note additional serializers will be added to the mapper
-         *            during the creation process. 1 Mapper can only be used with one JsonSchemaGenerator
-         *            but the JsonSchema generator is reusable(recommended)
+         *
+         * @param mapper Use the ObjectMapper provided. Please note additional serializers will be added to the mapper
+         *               during the creation process. 1 Mapper can only be used with one JsonSchemaGenerator
+         *               but the JsonSchema generator is reusable(recommended)
          * @return this
          */
-        public Builder withObjectMapper(ObjectMapper mapper){
-            this.mapper =mapper;
+        public Builder withObjectMapper(ObjectMapper mapper) {
+            this.mapper = mapper;
             return this;
         }
 
         /**
          * Optional
+         *
          * @param wrapperFactory to use. By default it will use SchemaFactoryWrapperFactory()
          * @return this
          */
-        public Builder withWrapperFactory(WrapperFactory wrapperFactory){
-            this.wrapperFactory =wrapperFactory;
+        public Builder withWrapperFactory(WrapperFactory wrapperFactory) {
+            this.wrapperFactory = wrapperFactory;
             return this;
         }
 
         /**
          * Optional
+         *
          * @param visitorFactory to use.
          * @return
          */
-        public Builder withFormatVisitorFactory(FormatVisitorFactory visitorFactory){
-            this.visitorFactory=visitorFactory;
+        public Builder withFormatVisitorFactory(FormatVisitorFactory visitorFactory) {
+            this.visitorFactory = visitorFactory;
             return this;
         }
 
         /**
          * Optional
+         *
          * @param schemaProvider to use
          * @return
          */
-        public Builder withJsonSchemaFactory(JsonSchemaFactory schemaProvider){
-            this.schemaProvider=schemaProvider;
+        public Builder withJsonSchemaFactory(JsonSchemaFactory schemaProvider) {
+            this.schemaProvider = schemaProvider;
             return this;
         }
 
         /**
          * Optional boolean to include the schema version used in the created document. Default to false
+         *
          * @param withIncludeJsonSchemaVersion
          * @return
          */
-        public Builder withIncludeJsonSchemaVersion(boolean withIncludeJsonSchemaVersion){
-            this.withSchemaType=withIncludeJsonSchemaVersion;
+        public Builder withIncludeJsonSchemaVersion(boolean withIncludeJsonSchemaVersion) {
+            this.withSchemaType = withIncludeJsonSchemaVersion;
             return this;
         }
 
@@ -99,36 +109,43 @@ public class JsonSchemaGenerator {
         /**
          * Optional boolean to say if object types allow additonal properties or not (additionalProperties = false | true).
          * defaults to true
+         *
          * @param withAdditonalProperties
          * @return
          */
-        public Builder withAdditonalProperties(boolean withAdditonalProperties){
-            this.withAdditonalProperties =withAdditonalProperties;
+        public Builder withAdditonalProperties(boolean withAdditonalProperties) {
+            this.withAdditonalProperties = withAdditonalProperties;
+            return this;
+        }
+
+        public Builder withSchemaBaseURI(URI schemaBaseURI) {
+            this.schemaBaseURI = schemaBaseURI;
             return this;
         }
 
         /**
          * @return constructed builder
          */
-        public JsonSchemaGenerator build(){
-            if(this.mapper ==null){
+        public JsonSchemaGenerator build() {
+            if (this.mapper == null) {
                 mapper = new ObjectMapper();
             }
             mapper.setSerializerFactory(mapper.getSerializerFactory().withAdditionalSerializers(new PolymorphicObjectSerializer()));
-            if(this.wrapperFactory ==null){
+            if (this.wrapperFactory == null) {
                 this.wrapperFactory = new WrapperFactory();
             }
-            if(this.visitorFactory ==null){
+            if (this.visitorFactory == null) {
                 this.visitorFactory = new FormatVisitorFactory();
             }
-            if(this.schemaProvider==null){
+            if (this.schemaProvider == null) {
                 this.schemaProvider = new JsonSchemaFactory();
             }
-            return new JsonSchemaGenerator(mapper, wrapperFactory,visitorFactory,schemaProvider,withSchemaType, withAdditonalProperties);
+            return new JsonSchemaGenerator(schemaBaseURI, mapper, wrapperFactory, visitorFactory, schemaProvider, withSchemaType, withAdditonalProperties);
 
         }
 
     }
+
     protected final ObjectMapper mapper;
 
     protected final WrapperFactory wrapperFactory;
@@ -142,12 +159,13 @@ public class JsonSchemaGenerator {
     protected final boolean withAdditionalProperties;
 
 
-    private JsonSchemaGenerator(ObjectMapper mapper, WrapperFactory wrapperFactory,FormatVisitorFactory visitorFactory,JsonSchemaFactory schemaProvider,boolean withSchemaType,boolean withAdditionalProperties) {
+    private JsonSchemaGenerator(URI schemaBaseURI, ObjectMapper mapper, WrapperFactory wrapperFactory, FormatVisitorFactory visitorFactory, JsonSchemaFactory schemaProvider, boolean withSchemaType, boolean withAdditionalProperties) {
+        this.schemaBaseURI = schemaBaseURI;
         this.mapper = mapper;
         this.wrapperFactory = wrapperFactory;
-        this.visitorFactory=visitorFactory;
-        this.schemaProvider=schemaProvider;
-        this.withSchemaType=withSchemaType;
+        this.visitorFactory = visitorFactory;
+        this.schemaProvider = schemaProvider;
+        this.withSchemaType = withSchemaType;
         this.withAdditionalProperties = withAdditionalProperties;
     }
 
@@ -156,13 +174,13 @@ public class JsonSchemaGenerator {
     }
 
     public JsonSchema generateSchema(JavaType type) throws JsonMappingException {
-        if(SchemaGenerationContext.get()!=null){
+        if (SchemaGenerationContext.get() != null) {
             throw new IllegalStateException("Generation is already in progress in this thread. JsonSchemaGenerator doesn't support recursive calls");
         }
         try {
-            SchemaGenerationContext generationContext = new SchemaGenerationContext(visitorFactory, schemaProvider, wrapperFactory, mapper, withAdditionalProperties);
+            SchemaGenerationContext generationContext = new SchemaGenerationContext(mapper.getSerializerProviderInstance(), visitorFactory, schemaProvider, wrapperFactory, mapper, withAdditionalProperties);
             SchemaGenerationContext.set(generationContext);
-            SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(null);
+            SchemaFactoryWrapper visitor = wrapperFactory.getWrapper(mapper.getSerializerProviderInstance());
             mapper.acceptJsonFormatVisitor(type, visitor);
             JsonSchema schema = visitor.finalSchema();
             if (withSchemaType) {
@@ -172,40 +190,41 @@ public class JsonSchemaGenerator {
                     schema.set$schema(SCHEMA_V4);
                 }
             }
+            if (schemaBaseURI != null) {
+                schema.setId(schemaBaseURI.toASCIIString());
+            }
             return schema;
-        }
-        finally {
+        } finally {
             SchemaGenerationContext.set(null);
         }
     }
 
     public String schemaAsString(Type type) throws JsonProcessingException {
-        return schemaAsString(generateSchema(type),false);
+        return schemaAsString(generateSchema(type), false);
     }
 
-    public String schemaAsString(Type type,boolean prettyPrint) throws JsonProcessingException {
-        return schemaAsString(generateSchema(type),prettyPrint);
+    public String schemaAsString(Type type, boolean prettyPrint) throws JsonProcessingException {
+        return schemaAsString(generateSchema(type), prettyPrint);
     }
 
     public String schemaAsString(JavaType type) throws JsonProcessingException {
-        return schemaAsString(generateSchema(type),false);
+        return schemaAsString(generateSchema(type), false);
     }
 
-    public String schemaAsString(JavaType type,boolean prettyPrint) throws JsonProcessingException {
-        return schemaAsString(generateSchema(type),prettyPrint);
+    public String schemaAsString(JavaType type, boolean prettyPrint) throws JsonProcessingException {
+        return schemaAsString(generateSchema(type), prettyPrint);
     }
 
     public String schemaAsString(JsonSchema schema) throws JsonProcessingException {
-        return schemaAsString(schema,false);
+        return schemaAsString(schema, false);
     }
 
 
-    public String schemaAsString(JsonSchema jsonSchema,boolean prettyPrint) throws JsonProcessingException {
+    public String schemaAsString(JsonSchema jsonSchema, boolean prettyPrint) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        if(prettyPrint){
+        if (prettyPrint) {
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonSchema);
-        }
-        else{
+        } else {
             return mapper.writeValueAsString(jsonSchema);
         }
 

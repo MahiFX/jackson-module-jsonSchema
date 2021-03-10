@@ -14,10 +14,6 @@ public class PolymorphicObjectSchema extends ObjectSchema {
 
     }
 
-    public PolymorphicObjectSchema() {
-
-    }
-
     @Override
     public JsonSchema.JSONType getType() {
         return type; //just return it for now;
@@ -83,5 +79,16 @@ public class PolymorphicObjectSchema extends ObjectSchema {
     @Override
     public PolymorphicObjectSchema asPolymorphicObjectSchema() {
         return this;
+    }
+
+    @Override
+    public ObjectSchema clone() {
+        PolymorphicObjectSchema polymorphicObjectSchema = new PolymorphicObjectSchema();
+        cloneObject(polymorphicObjectSchema);
+        polymorphicObjectSchema.setAllOf(getAllOf());
+        polymorphicObjectSchema.setAnyOf(getAnyOf());
+        polymorphicObjectSchema.setNot(getNot());
+        polymorphicObjectSchema.setOneOf(getOneOf());
+        return polymorphicObjectSchema;
     }
 }
