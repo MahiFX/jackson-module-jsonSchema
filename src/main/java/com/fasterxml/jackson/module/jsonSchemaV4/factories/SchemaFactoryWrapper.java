@@ -2,10 +2,8 @@ package com.fasterxml.jackson.module.jsonSchemaV4.factories;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.*;
-import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.SchemaGenerationContext;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.utils.PolymorphicSchemaUtil;
@@ -77,20 +75,7 @@ public class SchemaFactoryWrapper implements PolymorphicJsonFormatVisitorWrapper
     }
 
     private boolean isNotPolymorphic(JavaType itemType) {
-        try {
-            SerializerFactory serializerFactory = schemaGenerationContext.getMapper().getSerializerFactory();
-            do {
-                JsonSerializer<Object> serializer = serializerFactory.createSerializer(provider, itemType);
-                if (serializer instanceof PolymorphicObjectSerializer.PolyMorphicBeanSerializer) {
-                    return false;
-                }
-                itemType = itemType.getSuperClass();
-
-            } while (itemType != null);
-            return true;
-        } catch (JsonMappingException e) {
-            throw new RuntimeException(e);
-        }
+        return !PolymorphicObjectSerializer.isPolyMorphic(schemaGenerationContext.getMapper().getSerializationConfig(), itemType);
     }
 
     @Override

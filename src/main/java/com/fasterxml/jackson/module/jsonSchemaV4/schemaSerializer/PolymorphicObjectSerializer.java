@@ -18,11 +18,9 @@ import java.util.stream.Collectors;
 public class PolymorphicObjectSerializer extends SimpleSerializers {
 
     public JsonSerializer<?> findSerializer(SerializationConfig config, JavaType type, BeanDescription beanDesc) {
-        Collection<PolymorphicSchemaUtil.NamedJavaType> subTypes = PolymorphicSchemaUtil.extractSubTypes(type, config, true);
-        subTypes = subTypes.stream().filter(namedJavaType -> !namedJavaType.getJavaType().equals(type)).collect(Collectors.toList());
+        boolean isPolyMorphic = isPolyMorphic(config, type);
 
-        //for container types there is no point to be polymorphic, the representation will be the same.
-        if (subTypes.size() > 0 && !type.isContainerType()) {
+        if (isPolyMorphic) {
             SchemaGenerationContext context = SchemaGenerationContext.get();
             if (!context.isVisitedAsPolymorphicType(type)) {
                 return new PolyMorphicBeanSerializer();
@@ -30,6 +28,14 @@ public class PolymorphicObjectSerializer extends SimpleSerializers {
         }
 
         return null;
+    }
+
+    public static boolean isPolyMorphic(SerializationConfig config, JavaType type) {
+        Collection<PolymorphicSchemaUtil.NamedJavaType> subTypes = PolymorphicSchemaUtil.extractSubTypes(type, config, true);
+        subTypes = subTypes.stream().filter(namedJavaType -> !namedJavaType.getJavaType().equals(type)).collect(Collectors.toList());
+
+        //for container types there is no point to be polymorphic, the representation will be the same.
+        return subTypes.size() > 0 && !type.isContainerType();
     }
 
     public static class PolyMorphicBeanSerializer extends JsonSerializer {

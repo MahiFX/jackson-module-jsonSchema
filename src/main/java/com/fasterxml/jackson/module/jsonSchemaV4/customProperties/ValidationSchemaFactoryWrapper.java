@@ -95,10 +95,11 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
                 JsonSchema expectedSchema = refSchema.clone();
                 addValidationConstraints(expectedSchema, prop, parentSchema);
                 if (!expectedSchema.equals(refSchema)) {
-                    String newId = "#" + definitionKey + ":" + prop.getName();
-                    String newRef = DEFINITION_PREFIX + newId;
-                    expectedSchema.setId(newRef);
-                    definitions.put(newId, expectedSchema);
+                    String newId = schemaGenerationContext.getIdForType(prop.getType()) + ":" + prop.getName();
+                    String newDefKey = definitionKey + ":" + prop.getName();
+                    String newRef = DEFINITION_PREFIX + newDefKey;
+                    expectedSchema.setId(newId);
+                    definitions.put(newDefKey, expectedSchema);
                     propSchema.set$ref(newRef);
                 }
             }

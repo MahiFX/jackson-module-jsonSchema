@@ -46,7 +46,7 @@ public class SchemaGenerationContext {
                     setSchemaForNonPolymorphicType(contentType, subSchema);
                 }
             }
-            if (!schema.getDefinitions().containsKey(definitionKey)) {
+            if (!subSchema.isReferenceSchema() && !schema.getDefinitions().containsKey(definitionKey)) {
                 schema.getDefinitions().put(definitionKey, subSchema);
             }
 
