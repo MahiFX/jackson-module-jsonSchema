@@ -197,7 +197,8 @@ public class PolymorphicSchemaUtil {
                 addType = false;
             }
             if (addType) {
-                result.add(new NamedJavaType(subType.hasName() ? subType.getName() : null, type.forcedNarrowBy(subType.getType())));
+                JavaType javaSubType = config.getTypeFactory().constructType(subType.getType());
+                result.add(new NamedJavaType(subType.hasName() ? subType.getName() : null, javaSubType));
             }
         }
 

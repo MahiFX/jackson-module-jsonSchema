@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ReferenceSchema;
 import com.google.common.collect.Sets;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by zoliszel on 09/06/2015.
@@ -43,8 +45,27 @@ public class PolymorphicTypeTest {
         String json = toJson(schema, schema.getClass(), mapper);
         System.out.println(json);
         verifyDefinitions(schema);
-        Assert.assertTrue("Expected array schema", schema.isArraySchema());
+        assertTrue("Expected array schema", schema.isArraySchema());
         Assert.assertNotNull("Array items should have a reference set", (schema.asArraySchema().getItems()).asSingleItems().getSchema().get$ref());
+    }
+
+    @Test
+    public void polymorphicTypeWithFieldFromSuperOutsideHierarchy() {
+        JsonSchema schema = schema(Intf2.class, mapper);
+        String json = toJson(schema, schema.getClass(), mapper);
+        System.out.println(json);
+        ObjectSchema impl2 = (ObjectSchema) schema.getDefinitions().get("Impl2");
+        ObjectSchema impl3 = (ObjectSchema) schema.getDefinitions().get("Impl3");
+
+        assertTrue(impl2.getProperties().containsKey("foo"));
+
+        // From intf2
+        assertTrue(impl3.getProperties().containsKey("foo"));
+        // From super impl4
+        assertTrue(impl3.getProperties().containsKey("bar"));
+        //From child impl3
+        assertTrue(impl3.getProperties().containsKey("baz"));
+
     }
 
     @Test
@@ -92,7 +113,7 @@ public class PolymorphicTypeTest {
         String json = toJson(schema, schema.getClass(), mapper);
         System.out.println(json);
         verifyDefinitions(schema);
-        Assert.assertTrue("Expected polymorphicObject", schema.isPolymorhpicObjectSchema());
+        assertTrue("Expected polymorphicObject", schema.isPolymorhpicObjectSchema());
 //        Assert.assertNotNull("Polymorphic object should have an ID", schema.getId());
     }
 
@@ -106,12 +127,12 @@ public class PolymorphicTypeTest {
         String json = schemaGenerator.schemaAsString(schema);
         System.out.println(json);
         verifyDefinitions(schema);
-        Assert.assertTrue("Expected polymorphicObject", schema instanceof PolymorphicObjectSchema);
+        assertTrue("Expected polymorphicObject", schema instanceof PolymorphicObjectSchema);
     }
 
     public static void verifyAnyOfContent(ReferenceSchema[] anyOf, Set<String> references) {
         for (String ref : references) {
-            Assert.assertTrue("Any OF Schema Should Contain" + ref + " reference", containsReference(anyOf, ref));
+            assertTrue("Any OF Schema Should Contain" + ref + " reference", containsReference(anyOf, ref));
         }
     }
 
@@ -119,7 +140,7 @@ public class PolymorphicTypeTest {
         Assert.assertNotNull("definitions should not be null", schema.getDefinitions());
         Assert.assertEquals("there should be " + definitions.size() + " sub schema", definitions.size(), schema.getDefinitions().size());
         for (String def : definitions) {
-            Assert.assertTrue("should contain " + def + " schema", schema.getDefinitions().containsKey(def));
+            assertTrue("should contain " + def + " schema", schema.getDefinitions().containsKey(def));
         }
     }
 
@@ -127,11 +148,11 @@ public class PolymorphicTypeTest {
         containsDefinitions(schema, Sets.newHashSet("Person", "Company", "BigCompany", "Company_1", JSONSubTypeBaseClass.class.getSimpleName()));
         Map<String, JsonSchema> definitions = schema.getDefinitions();
         JsonSchema companySchema = definitions.get("Company");
-        Assert.assertTrue("Company schema should be polymorphic", companySchema.isPolymorhpicObjectSchema());
+        assertTrue("Company schema should be polymorphic", companySchema.isPolymorhpicObjectSchema());
         PolymorphicObjectSchema companyPolymorphic = companySchema.asPolymorphicObjectSchema();
         verifyAnyOfContent(companyPolymorphic.asPolymorphicObjectSchema().getAnyOf(), Sets.newHashSet("Company_1", "BigCompany"));
         JsonSchema jsonSubTypeSchema = schema.getDefinitions().get(JSONSubTypeBaseClass.class.getSimpleName());
-        Assert.assertTrue("JSONSubType schema should be polymorhpic", jsonSubTypeSchema.isPolymorhpicObjectSchema());
+        assertTrue("JSONSubType schema should be polymorhpic", jsonSubTypeSchema.isPolymorhpicObjectSchema());
         ReferenceSchema[] jsonSubTypeRef = jsonSubTypeSchema.asPolymorphicObjectSchema().getAnyOf();
         verifyAnyOfContent(jsonSubTypeRef, JSON_SUB_TYPES);
     }
@@ -155,9 +176,9 @@ public class PolymorphicTypeTest {
     public void parseTest() {
         JSONSubTypeBaseClass[] media = loadJson(PolymorphicTypeTest.class.getResourceAsStream("/polymorphic.json"), JSONSubTypeBaseClass[].class, mapper);
         Assert.assertEquals("mismatch in array size", 3, media.length);
-        Assert.assertTrue("First item is not a person", media[0] instanceof Person);
-        Assert.assertTrue("Second item is not a Company", media[1] instanceof CompanyObfuscated);
-        Assert.assertTrue("Third item is not a BigCompany", media[2] instanceof BigCompany);
+        assertTrue("First item is not a person", media[0] instanceof Person);
+        assertTrue("Second item is not a Company", media[1] instanceof CompanyObfuscated);
+        assertTrue("Third item is not a BigCompany", media[2] instanceof BigCompany);
     }
 
 
@@ -188,9 +209,9 @@ public class PolymorphicTypeTest {
         JsonSchema schema = generator.generateSchema(Number.class);
         containsDefinitions(schema, Sets.newHashSet("Number", "Double", "Integer"));
         JsonSchema number = schema.getDefinitions().get("Number");
-        Assert.assertTrue("Number should be polymorphic", number.isPolymorhpicObjectSchema());
+        assertTrue("Number should be polymorphic", number.isPolymorhpicObjectSchema());
         verifyAnyOfContent(number.asPolymorphicObjectSchema().getAnyOf(), Sets.newHashSet("Integer", "Double"));
-        Assert.assertTrue("Number should have an array of types", number.getType().isArrayJSONType());
+        assertTrue("Number should have an array of types", number.getType().isArrayJSONType());
         Assert.assertEquals("Number has wrong set of types", Sets.newHashSet(JsonFormatTypes.INTEGER, JsonFormatTypes.NUMBER), Sets.newHashSet(Arrays.asList(number.getType().asArrayJsonType().getFormatTypes())));
     }
 }

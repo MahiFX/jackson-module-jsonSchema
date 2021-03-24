@@ -102,6 +102,7 @@ interface Intf {
 @JsonSubTypes({
         @JsonSubTypes.Type(Impl.class),
         @JsonSubTypes.Type(Impl2.class),
+        @JsonSubTypes.Type(Impl3.class),
 })
 interface Intf2 {
 
@@ -145,6 +146,34 @@ class IntfArrayMixin {
 @JsonTypeName("Intf2[]")
 class Intf2ArrayMixin {
 
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Impl3")
+class Impl3 extends Impl4 implements Intf2 {
+
+    String baz;
+    String foo;
+
+    public String getBaz() {
+        return baz;
+    }
+
+    @Override
+    public String getFoo() {
+        return foo;
+    }
+}
+
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
+@JsonTypeName("Impl4")
+class Impl4 {
+
+    String bar;
+
+    public String getBar() {
+        return bar;
+    }
 }
 
 
