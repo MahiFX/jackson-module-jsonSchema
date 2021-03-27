@@ -202,6 +202,11 @@ public class PolymorphicSchemaUtil {
             }
         }
 
+        //Don't return a list of only the parent which sometimes is returned due to generics
+        if(result.size() == 1 && result.get(0).getRawClass().equals(type.getRawClass()) && !type.isContainerType()){ //TODO find out why this breaks arrays
+            return Collections.emptyList();
+        }
+
         return result;
     }
 
