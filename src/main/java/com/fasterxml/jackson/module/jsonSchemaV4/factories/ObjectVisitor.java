@@ -77,9 +77,10 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
             throws JsonMappingException {
         // check if we've seen this argument's sub-schema already and return a reference-schema if we have
         SchemaGenerationContext context = SchemaGenerationContext.get();
-        String definitionKey = context.getDefinitionKeyForType(propType);
+
         if (context.isVisited(propType) && SchemaGenerationContext.isNotJvmType(propType)) {
             ReferenceSchema referenceSchemaForVisitedType = context.getReferenceSchemaForVisitedType(propType);
+            String definitionKey = context.getDefinitionKeyForType(propType);
             if (context.getReferenceCount(propType) == 1 && (schema.getDefinitions() == null || !schema.getDefinitions().containsKey(definitionKey))) {
                 context.createDefinitionForNonPolymorphic(propType, schema);
             }
@@ -100,6 +101,7 @@ public class ObjectVisitor extends JsonObjectFormatVisitor.Base
                 context.setSchemaForNonPolymorphicType(propType, jsonSchema);
                 context.setFormatTypeForVisitedType(propType, jsonSchema.getType());
             }
+            String definitionKey = context.getDefinitionKeyForType(propType);
             if (wasFirst && context.getReferenceCount(propType) > 0 && (schema.getDefinitions() == null || !schema.getDefinitions().containsKey(definitionKey))) {
                 context.createDefinitionForNonPolymorphic(propType, schema);
                 jsonSchema = context.getReferenceSchemaForVisitedType(propType);

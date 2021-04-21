@@ -1,10 +1,15 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import com.fasterxml.jackson.databind.jsontype.TypeResolverBuilder;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
@@ -21,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -138,7 +144,7 @@ public class PolymorphicTypeTest {
 
     public static void containsDefinitions(JsonSchema schema, Set<String> definitions) {
         Assert.assertNotNull("definitions should not be null", schema.getDefinitions());
-        Assert.assertEquals("there should be " + definitions.size() + " sub schema", definitions.size(), schema.getDefinitions().size());
+        assertEquals("there should be " + definitions.size() + " sub schema", definitions.size(), schema.getDefinitions().size());
         for (String def : definitions) {
             assertTrue("should contain " + def + " schema", schema.getDefinitions().containsKey(def));
         }
@@ -175,10 +181,86 @@ public class PolymorphicTypeTest {
     @Test
     public void parseTest() {
         JSONSubTypeBaseClass[] media = loadJson(PolymorphicTypeTest.class.getResourceAsStream("/polymorphic.json"), JSONSubTypeBaseClass[].class, mapper);
-        Assert.assertEquals("mismatch in array size", 3, media.length);
+        assertEquals("mismatch in array size", 3, media.length);
         assertTrue("First item is not a person", media[0] instanceof Person);
         assertTrue("Second item is not a Company", media[1] instanceof CompanyObfuscated);
         assertTrue("Third item is not a BigCompany", media[2] instanceof BigCompany);
+    }
+
+    @Test
+    public void multipleSetTest() throws JsonMappingException {
+        mapper = new ObjectMapper();
+        TypeResolverBuilder<?> typer = new ObjectMapper.DefaultTypeResolverBuilder(ObjectMapper.DefaultTyping.NON_FINAL, BasicPolymorphicTypeValidator.builder().build());
+        typer = typer.init(JsonTypeInfo.Id.NAME, null);
+        typer = typer.inclusion(JsonTypeInfo.As.PROPERTY);
+        typer = typer.typeProperty("@type");
+        typer = typer.typeIdVisibility(true);
+        mapper.setDefaultTyping(typer);
+
+        JsonSchemaGenerator schemaGenerator = new JsonSchemaGenerator.Builder().withObjectMapper(mapper).build();
+        ObjectSchema schema = schemaGenerator.generateSchema(MultipleSet.class).asObjectSchema();
+
+        ArraySchema setA = schema.getProperties().get("setA").asArraySchema();
+        ReferenceSchema itemSchema = setA.getItems().asArrayItems().getJsonSchemas()[1].asArraySchema().getItems().asSingleItems().getSchema().asReferenceSchema();
+        assertEquals("#/definitions/SetItem", itemSchema.get$ref());
+
+        // B is a ref to A
+        ReferenceSchema setB = schema.getProperties().get("setB").asReferenceSchema();
+        assertEquals("#/definitions/Set(SetItem)", setB.get$ref());
+
+    }
+
+    @JsonTypeName("MultipleSet")
+    class MultipleSet {
+
+        @JsonProperty
+        SetItem rootItem;
+
+        @JsonProperty
+        Set<SetItem> setA;
+
+        @JsonProperty
+        Set<SetItem> setB;
+
+        @JsonProperty
+        Set<String> setOfStrings;
+
+        @JsonProperty
+        Set<String> secondSetOfStrings;
+
+    }
+
+    @JsonTypeName("SetItem")
+    @JsonSubTypes({@JsonSubTypes.Type(SetItemA.class),
+            @JsonSubTypes.Type(SetItemB.class)
+    })
+    interface SetItem {
+
+        @JsonProperty
+        String getName();
+    }
+
+    @JsonTypeName("SetItemA")
+    class SetItemA implements SetItem {
+        @JsonProperty
+        String name;
+
+        @Override
+        public String getName() {
+            return name;
+        }
+    }
+
+
+    @JsonTypeName("SetItemB")
+    class SetItemB implements SetItem {
+        @JsonProperty
+        String name;
+
+        @Override
+        public String getName() {
+            return name;
+        }
     }
 
 
@@ -212,6 +294,6 @@ public class PolymorphicTypeTest {
         assertTrue("Number should be polymorphic", number.isPolymorhpicObjectSchema());
         verifyAnyOfContent(number.asPolymorphicObjectSchema().getAnyOf(), Sets.newHashSet("Integer", "Double"));
         assertTrue("Number should have an array of types", number.getType().isArrayJSONType());
-        Assert.assertEquals("Number has wrong set of types", Sets.newHashSet(JsonFormatTypes.INTEGER, JsonFormatTypes.NUMBER), Sets.newHashSet(Arrays.asList(number.getType().asArrayJsonType().getFormatTypes())));
+        assertEquals("Number has wrong set of types", Sets.newHashSet(JsonFormatTypes.INTEGER, JsonFormatTypes.NUMBER), Sets.newHashSet(Arrays.asList(number.getType().asArrayJsonType().getFormatTypes())));
     }
 }

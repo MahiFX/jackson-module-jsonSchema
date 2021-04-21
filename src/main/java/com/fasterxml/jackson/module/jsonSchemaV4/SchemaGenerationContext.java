@@ -213,7 +213,7 @@ public class SchemaGenerationContext {
     }
 
     public static String uriSafe(String typeName) {
-        return typeName.replace('.', ':').replace('$', ':').replace("<", ":").replace(">", ":");
+        return typeName.replace('.', ':').replace('$', ':').replace("<", "(").replace(">", ")");
     }
 
     public String getIdForType(JavaType convertedType) {
@@ -254,6 +254,14 @@ public class SchemaGenerationContext {
             if (serializer != null) {
                 TypeIdResolver typeIdResolver = serializer.getTypeIdResolver();
                 typeName = typeIdResolver.idFromBaseType();
+            }
+            if (typeName != null && convertedType.isContainerType()) {
+                JavaType contentType = convertedType.getContentType();
+                String itemTypeName = getTypeName(contentType);
+                if (itemTypeName == null) {
+                    itemTypeName = contentType.getRawClass().getSimpleName();
+                }
+                typeName = typeName + "(" + itemTypeName + ")";
             }
             return typeName;
         } catch (JsonMappingException e) {
