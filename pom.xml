@@ -165,14 +165,14 @@
             <uniqueVersion>false</uniqueVersion>
             <id>releases</id>
             <name>releases</name>
-            <url>http://build.mahifx.com/nexus/content/repositories/thirdparty</url>
+            <url></url>
         </repository>
 
         <snapshotRepository>
             <uniqueVersion>false</uniqueVersion>
             <id>snapshots</id>
             <name>snapshots</name>
-            <url>http://build.mahifx.com/nexus/content/repositories/thirdpartysnapshots</url>
+            <url></url>
         </snapshotRepository>
     </distributionManagement>
 
