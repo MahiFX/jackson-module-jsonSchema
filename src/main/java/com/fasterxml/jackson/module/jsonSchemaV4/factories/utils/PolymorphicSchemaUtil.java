@@ -203,7 +203,7 @@ public class PolymorphicSchemaUtil {
         }
 
         //Don't return a list of only the parent which sometimes is returned due to generics
-        if(result.size() == 1 && result.get(0).getRawClass().equals(type.getRawClass()) && !type.isContainerType()){ //TODO find out why this breaks arrays
+        if (result.size() == 1 && result.get(0).getRawClass().equals(type.getRawClass()) && !type.isContainerType()) { //TODO find out why this breaks arrays
             return Collections.emptyList();
         }
 
@@ -318,6 +318,9 @@ public class PolymorphicSchemaUtil {
         }
 
         NumberSchema numberSchema = (NumberSchema) originalSchema;
+        if (numberSchema.getMaximum() != null || numberSchema.getMinimum() != null) {
+            return numberSchema;
+        }
         if (numberSchema.getEnums() != null && !numberSchema.getEnums().isEmpty()) {
             return numberSchema;
         }
@@ -370,12 +373,50 @@ public class PolymorphicSchemaUtil {
             if (!target.containsKey(key)) {
                 target.put(key, sourceSchema);
             } else {
-                boolean isPolyMorph = sourceSchema instanceof PolymorphicObjectSchema;
-                if (!(sourceSchema instanceof ReferenceSchema) && !(sourceSchema instanceof AnyOfSchema) && !isPolyMorph) {
+                JsonSchema targetSchema = target.get(key);
+                if (targetSchema.equals(sourceSchema)) continue;
+
+                boolean wouldLoop = wouldLoop(sourceSchema, key);
+                if (!(sourceSchema instanceof ReferenceSchema) && !(sourceSchema instanceof AnyOfSchema) && !wouldLoop) {
                     target.put(key, sourceSchema);
                 }
             }
         }
+    }
+
+    private static boolean wouldLoop(JsonSchema sourceSchema, String key) {
+        return sourceSchema instanceof PolymorphicObjectSchema &&
+                (sourceSchema.get$ref() != null || isSelfRef((PolymorphicObjectSchema) sourceSchema, key));
+    }
+
+    private static boolean isSelfRef(PolymorphicObjectSchema sourceSchema, String key) {
+        ReferenceSchema[] anyOf = sourceSchema.getAnyOf();
+        if (anyOf != null) {
+            boolean selfRef = isSelfRef(key, anyOf);
+            if (selfRef) {
+                return true;
+            }
+        }
+        ReferenceSchema[] allOf = sourceSchema.getAllOf();
+        if (allOf != null) {
+            boolean selfRef = isSelfRef(key, allOf);
+            if (selfRef) {
+                return true;
+            }
+        }
+        ReferenceSchema[] oneOf = sourceSchema.getOneOf();
+        if (oneOf != null) {
+            boolean selfRef = isSelfRef(key, oneOf);
+            if (selfRef) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isSelfRef(String key, ReferenceSchema[] anyOf) {
+        return Arrays.stream(anyOf).anyMatch(s -> s.get$ref() != null && s.get$ref().endsWith("/" + key));
     }
 
 }
