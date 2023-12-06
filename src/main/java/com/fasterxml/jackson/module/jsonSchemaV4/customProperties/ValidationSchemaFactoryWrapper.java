@@ -9,10 +9,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.ObjectVisitorDecorator;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ArraySchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.NumberSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
-import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
+import com.fasterxml.jackson.module.jsonSchemaV4.types.*;
 import com.fasterxml.jackson.module.jsonSchemaV4.validation.AnnotationConstraintResolver;
 import com.fasterxml.jackson.module.jsonSchemaV4.validation.ValidationConstraintResolver;
 
@@ -65,7 +62,8 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
             public void optionalProperty(BeanProperty writer) throws JsonMappingException {
                 super.optionalProperty(writer);
                 if (getSchema() instanceof ObjectSchema) {
-                    addValidationConstraints(getPropertySchema(writer), writer, getSchema());
+                    JsonSchema propertySchema = getPropertySchema(writer);
+                    addValidationConstraints(propertySchema, writer, getSchema(), propertySchema.getDefinitions());
                 }
             }
 
@@ -73,27 +71,34 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
             public void property(BeanProperty writer) throws JsonMappingException {
                 super.property(writer);
                 if (getSchema() instanceof ObjectSchema) {
-                    addValidationConstraints(getPropertySchema(writer), writer, getSchema());
+                    JsonSchema propertySchema = getPropertySchema(writer);
+                    addValidationConstraints(propertySchema, writer, getSchema(), propertySchema.getDefinitions());
                 }
             }
         };
     }
 
-    private void addValidationConstraints(JsonSchema propSchema, BeanProperty prop, JsonSchema parentSchema) {
+    private void addValidationConstraints(JsonSchema propSchema, BeanProperty prop, JsonSchema parentSchema, Map<String, JsonSchema> definitions) {
 
         if (propSchema.isReferenceSchema() && propSchema.get$ref() != null) { // Some poly morph references get their ref set later
-            String definitionKey = schemaGenerationContext.getDefinitionKeyForType(prop.getType());
-            Map<String, JsonSchema> definitions = parentSchema.getDefinitions();
-            if (definitions == null) {
-                definitions = new HashMap<>();
-                parentSchema.setDefinitions(definitions);
+            String definitionKey = propSchema.get$ref().replace("#/definitions/", "");
+            JsonSchema refSchema = null;
+            if (definitions != null) {
+                refSchema = definitions.get(definitionKey);
             }
-            JsonSchema refSchema = definitions.get(definitionKey);
-
+            if (refSchema == null) {
+                // Check parent schema for the definition
+                definitions = parentSchema.getDefinitions();
+                if (definitions == null) {
+                    definitions = new HashMap<>();
+                    parentSchema.setDefinitions(definitions);
+                }
+                refSchema = definitions.get(definitionKey);
+            }
             if (refSchema != null) {
                 // Some refs like the __NUMBER... have their definitions created at the end
                 JsonSchema expectedSchema = refSchema.clone();
-                addValidationConstraints(expectedSchema, prop, parentSchema);
+                addValidationConstraints(expectedSchema, prop, parentSchema, definitions);
                 if (!expectedSchema.equals(refSchema)) {
                     String newId = schemaGenerationContext.getIdForType(prop.getType()) + ":" + prop.getName();
                     String newDefKey = definitionKey + ":" + prop.getName();
@@ -103,6 +108,11 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
                     propSchema.set$ref(newRef);
                 }
             }
+        } else if (propSchema.isPolymorhpicObjectSchema()) {
+            PolymorphicObjectSchema polymorphicObjectSchema = propSchema.asPolymorphicObjectSchema();
+            addValidationConstraints(propSchema, prop, polymorphicObjectSchema.getAnyOf(), definitions);
+            addValidationConstraints(propSchema, prop, polymorphicObjectSchema.getOneOf(), definitions);
+            addValidationConstraints(propSchema, prop, polymorphicObjectSchema.getAllOf(), definitions);
         } else if (propSchema.isArraySchema()) {
             ArraySchema arraySchema = propSchema.asArraySchema();
             arraySchema.setMaxItems(constraintResolver.getArrayMaxItems(prop));
@@ -116,6 +126,14 @@ public class ValidationSchemaFactoryWrapper extends SchemaFactoryWrapper {
             stringSchema.setMaxLength(constraintResolver.getStringMaxLength(prop));
             stringSchema.setMinLength(constraintResolver.getStringMinLength(prop));
             stringSchema.setPattern(constraintResolver.getStringPattern(prop));
+        }
+    }
+
+    private void addValidationConstraints(JsonSchema propSchema, BeanProperty prop, JsonSchema[] schemas, Map<String, JsonSchema> definitions) {
+        if (schemas != null) {
+            for (JsonSchema subType : schemas) {
+                addValidationConstraints(subType, prop, propSchema, definitions);
+            }
         }
     }
 

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonFormatTypes;
 import com.fasterxml.jackson.module.jsonSchemaV4.JsonSchema;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 /**
  * Created by zoliszel on 12/06/2015.
  */
@@ -85,10 +88,33 @@ public class PolymorphicObjectSchema extends ObjectSchema {
     public ObjectSchema clone() {
         PolymorphicObjectSchema polymorphicObjectSchema = new PolymorphicObjectSchema();
         cloneObject(polymorphicObjectSchema);
-        polymorphicObjectSchema.setAllOf(getAllOf());
-        polymorphicObjectSchema.setAnyOf(getAnyOf());
-        polymorphicObjectSchema.setNot(getNot());
-        polymorphicObjectSchema.setOneOf(getOneOf());
+        polymorphicObjectSchema.setAllOf(cloneArray(getAllOf()));
+        polymorphicObjectSchema.setAnyOf(cloneArray(getAnyOf()));
+        polymorphicObjectSchema.setNot(getNot() == null ? null : (ReferenceSchema) getNot().clone());
+        polymorphicObjectSchema.setOneOf(cloneArray(getOneOf()));
         return polymorphicObjectSchema;
+    }
+
+    private ReferenceSchema[] cloneArray(ReferenceSchema[] refs) {
+        if (refs == null) return refs;
+        return Arrays.stream(refs).map(ReferenceSchema::clone).toArray(ReferenceSchema[]::new);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PolymorphicObjectSchema that = (PolymorphicObjectSchema) o;
+        return Arrays.equals(getAnyOf(), that.getAnyOf()) && Arrays.equals(getAllOf(), that.getAllOf()) && Arrays.equals(getOneOf(), that.getOneOf()) && Objects.equals(getNot(), that.getNot());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(getNot());
+        result = 31 * result + Arrays.hashCode(getAnyOf());
+        result = 31 * result + Arrays.hashCode(getAllOf());
+        result = 31 * result + Arrays.hashCode(getOneOf());
+        return result;
     }
 }
