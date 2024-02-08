@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.jsonSchemaV4.customProperties.HyperSchemaFactoryWrapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.FormatVisitorFactory;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.JsonSchemaFactory;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.SchemaFactoryWrapper;
-import com.fasterxml.jackson.module.jsonSchemaV4.factories.WrapperFactory;
+import com.fasterxml.jackson.module.jsonSchemaV4.factories.*;
 import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
 
 import java.lang.reflect.Type;
@@ -177,6 +174,7 @@ public class JsonSchemaGenerator {
         if (SchemaGenerationContext.get() != null) {
             throw new IllegalStateException("Generation is already in progress in this thread. JsonSchemaGenerator doesn't support recursive calls");
         }
+        PolymorphicObjectVisitor.clearCache();
         try {
             SchemaGenerationContext generationContext = new SchemaGenerationContext(mapper.getSerializerProviderInstance(), visitorFactory, schemaProvider, wrapperFactory, mapper, withAdditionalProperties);
             SchemaGenerationContext.set(generationContext);

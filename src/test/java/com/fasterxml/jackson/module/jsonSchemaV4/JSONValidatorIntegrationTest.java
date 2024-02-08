@@ -1,8 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.BeanSerializerFactory;
-import com.fasterxml.jackson.module.jsonSchemaV4.schemaSerializer.PolymorphicObjectSerializer;
 import com.github.fge.jackson.JsonLoader;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import org.junit.Assert;
@@ -21,7 +19,6 @@ public class JSONValidatorIntegrationTest {
     @Before
     public void setup() {
         mapper = new ObjectMapper();
-
       //  mapper.setSerializerFactory(BeanSerializerFactory.instance.withAdditionalSerializers(new PolymorphicObjectSerializer()));
     }
 

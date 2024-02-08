@@ -10,9 +10,10 @@ import org.junit.Test;
 
 import java.lang.reflect.Type;
 
+import static com.fasterxml.jackson.module.jsonSchemaV4.PolymorphicTypeTest.containsDefinitions;
+import static com.fasterxml.jackson.module.jsonSchemaV4.PolymorphicTypeTest.verifyAnyOfContent;
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.schema;
 import static com.fasterxml.jackson.module.jsonSchemaV4.Utils.toJson;
-import static com.fasterxml.jackson.module.jsonSchemaV4.PolymorphicTypeTest.*;
 
 /**
  * Created by zoliszel on 09/06/2015.

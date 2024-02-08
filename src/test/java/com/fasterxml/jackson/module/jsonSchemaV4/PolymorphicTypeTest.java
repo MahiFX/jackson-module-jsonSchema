@@ -132,8 +132,8 @@ public class PolymorphicTypeTest {
         schema = schemaGenerator.generateSchema(type);
         String json = schemaGenerator.schemaAsString(schema);
         System.out.println(json);
-        verifyDefinitions(schema);
         assertTrue("Expected polymorphicObject", schema instanceof PolymorphicObjectSchema);
+        verifyDefinitions(schema);
     }
 
     public static void verifyAnyOfContent(ReferenceSchema[] anyOf, Set<String> references) {
