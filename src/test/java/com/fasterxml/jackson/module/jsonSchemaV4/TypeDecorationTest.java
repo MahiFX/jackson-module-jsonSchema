@@ -198,9 +198,9 @@ public class TypeDecorationTest {
     @Test
     public void objectDoesntHaveTypeRestriction() throws Exception {
         JsonSchemaGenerator generator = createGeneratorWithTyperFor(JsonTypeInfo.Id.NAME);
-        JsonSchema schema =generator.generateSchema(Object.class);
-        String json =toJson(schema, schema.getClass(), new ObjectMapper());
-        Assert.assertEquals("{\"type\":[\"string\",\"number\",\"integer\",\"boolean\",\"object\",\"array\",\"null\"]}",json);
+        JsonSchema schema = generator.generateSchema(Object.class);
+        String json = toJson(schema, schema.getClass(), new ObjectMapper());
+        Assert.assertEquals("{\"type\":[\"string\",\"number\",\"integer\",\"boolean\",\"object\",\"array\",\"null\"]}", json);
     }
 
     @JsonTypeName(ClassAsWrapperObject.TYPE_NAME)
@@ -227,6 +227,6 @@ public class TypeDecorationTest {
         JsonSchema schema = generator.generateSchema(ClassAsWrapperObject.class);
 
         String json = toJson(schema, schema.getClass(), new ObjectMapper());
-        Assert.assertEquals("{\"type\":\"object\",\"properties\":{\"ClassAsWrapperObject\":{\"id\":\"#com:fasterxml:jackson:module:jsonSchemaV4:ClassAsWrapperObject\",\"type\":\"object\",\"properties\":{\"someProperty\":{\"type\":\"string\"}}}},\"required\":[\"ClassAsWrapperObject\"]}", json);
+        Assert.assertEquals("{\"type\":\"object\",\"properties\":{\"ClassAsWrapperObject\":{\"id\":\"urn:com:fasterxml:jackson:module:jsonSchemaV4:ClassAsWrapperObject\",\"type\":\"object\",\"properties\":{\"someProperty\":{\"type\":\"string\"}}}},\"required\":[\"ClassAsWrapperObject\"]}", json);
     }
 }

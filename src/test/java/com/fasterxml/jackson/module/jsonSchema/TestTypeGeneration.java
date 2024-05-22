@@ -26,7 +26,7 @@ public class TestTypeGeneration extends SchemaTestBase
         JsonSchema jsonSchema = generator.generateSchema(Issue14Bean.class);
         String json = MAPPER.writeValueAsString(jsonSchema).replace('"', '\'');
         final String EXP = "{'type':'object'," +
-                "'id':'#com:fasterxml:jackson:module:jsonSchema:TestTypeGeneration:Issue14Bean'," +
+                "'id':'urn:com:fasterxml:jackson:module:jsonSchema:TestTypeGeneration:Issue14Bean'," +
                 "'properties':{'date':{'type':'integer','format':'utc-millisec'}}}";
         assertEquals(EXP, json);
     }

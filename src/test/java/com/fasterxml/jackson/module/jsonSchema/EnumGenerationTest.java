@@ -79,7 +79,7 @@ public class EnumGenerationTest extends SchemaTestBase
         return new LinkedHashMap<String, Object>() {
             {
                 put("type", "object");
-                put("id", "#com:fasterxml:jackson:module:jsonSchema:EnumGenerationTest:LetterBean");
+                put("id", "urn:com:fasterxml:jackson:module:jsonSchema:EnumGenerationTest:LetterBean");
                 put("properties",
                         new LinkedHashMap<String, Object>() {
                     {

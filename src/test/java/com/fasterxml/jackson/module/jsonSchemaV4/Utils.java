@@ -29,9 +29,9 @@ public class Utils {
         }
     }
 
-    public static String toJson(Object o, Type type, ObjectMapper mapper) {
+    public static String toJson(Object o, Class<?> type, ObjectMapper mapper) {
         try {
-            return mapper.writer().writeValueAsString(o);
+            return mapper.writerFor(type).writeValueAsString(o);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

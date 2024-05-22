@@ -20,6 +20,6 @@ public class VisitorContext {
     }
 
     public String javaTypeToUrn(JavaType jt) {
-        return "#" + jt.toCanonical().replace('.', ':').replace('$', ':');
+        return "urn:" + jt.toCanonical().replace('.', ':').replace('$', ':');
     }
 }

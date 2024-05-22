@@ -22,7 +22,7 @@ public class TestUnwrapping extends SchemaTestBase
     /* Unit tests, success
     /**********************************************************
      */
-    
+
     private final ObjectMapper MAPPER = objectMapper();
 
     public void testUnwrapping()  throws Exception
@@ -31,10 +31,10 @@ public class TestUnwrapping extends SchemaTestBase
         JsonSchema schema = generator.generateSchema(UnwrappingRoot.class);
 
         String json = MAPPER.writeValueAsString(schema).replace('"', '\'');
-        
+
 //System.err.println("JSON -> "+MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(schema));
         String EXP = "{'type':'object'," +
-                     "'id':'#com:fasterxml:jackson:module:jsonSchema:TestUnwrapping:UnwrappingRoot'," +
+                "'id':'urn:com:fasterxml:jackson:module:jsonSchema:TestUnwrapping:UnwrappingRoot'," +
                      "'properties':{'age':{'type':'integer'},'name.first':{'type':'string'},'name.last':{'type':'string'}}}";
         assertEquals(EXP, json);
     }

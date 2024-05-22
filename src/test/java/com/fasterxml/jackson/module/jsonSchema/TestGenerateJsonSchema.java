@@ -245,7 +245,7 @@ public class TestGenerateJsonSchema
         assertEquals(new HashMap() {
             {
                 put("type", "object");
-                put("id", "#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:BeanWithId");
+                put("id", "urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:BeanWithId");
                 put("properties",
                         new HashMap() {
                     {
@@ -281,7 +281,7 @@ public class TestGenerateJsonSchema
 
         String schemaString = MAPPER.writeValueAsString(jsonSchema);
         assertEquals("{\"type\":\"object\"," +
-                "\"id\":\"#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
+                "\"id\":\"urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
                 "\"dependencies\":{\"property1\":[\"property2\"]}," +
                 "\"properties\":{\"property1\":{\"type\":\"integer\"}" +
                 ",\"property2\":{\"type\":\"string\"}," +
@@ -303,7 +303,7 @@ public class TestGenerateJsonSchema
 
         String schemaString = MAPPER.writeValueAsString(jsonSchema);
         assertEquals("{\"type\":\"object\"," +
-                "\"id\":\"#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
+                "\"id\":\"urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
                 "\"dependencies\":{\"property1\":[\"property2\",\"property3\"],\"property2\":[\"property3\"]}," +
                 "\"properties\":{\"property1\":{\"type\":\"integer\"}" +
                 ",\"property2\":{\"type\":\"string\"}," +
@@ -328,8 +328,8 @@ public class TestGenerateJsonSchema
         // Test the generated value.
         String schemaString = MAPPER.writeValueAsString(simpleBeanSchema);
         assertEquals("{\"type\":\"object\"," +
-                "\"id\":\"#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
-                "\"dependencies\":{\"property1\":{\"id\":\"#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:DependencySchema\",\"properties\":{\"property2\":{\"type\":\"string\",\"required\":true}}}}," +
+                "\"id\":\"urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
+                "\"dependencies\":{\"property1\":{\"id\":\"urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:DependencySchema\",\"properties\":{\"property2\":{\"type\":\"string\",\"required\":true}}}}," +
                 "\"properties\":{\"property1\":{\"type\":\"integer\"}" +
                 ",\"property2\":{\"type\":\"string\"}," +
                 "\"property3\":{\"type\":\"array\",\"items\":{\"type\":\"string\"}}," +
@@ -356,10 +356,10 @@ public class TestGenerateJsonSchema
         assertEquals(
                 "{" +
                   "\"type\":\"object\"," +
-                  "\"id\":\"#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
+                        "\"id\":\"urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:SimpleBean\"," +
                   "\"dependencies\":{" +
-                    "\"property1\":{\"id\":\"#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:DependencySchema\",\"properties\":{\"property2\":{\"type\":\"string\",\"required\":true}}}," +
-                    "\"property3\":{\"id\":\"#com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:DependencySchema\",\"properties\":{\"property2\":{\"type\":\"string\",\"required\":true}}}}," +
+                        "\"property1\":{\"id\":\"urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:DependencySchema\",\"properties\":{\"property2\":{\"type\":\"string\",\"required\":true}}}," +
+                        "\"property3\":{\"id\":\"urn:com:fasterxml:jackson:module:jsonSchema:TestGenerateJsonSchema:DependencySchema\",\"properties\":{\"property2\":{\"type\":\"string\",\"required\":true}}}}," +
                   "\"properties\":{" +
                       "\"property1\":{\"type\":\"integer\"}" +
                       ",\"property2\":{\"type\":\"string\"}," +

@@ -209,7 +209,7 @@ public class SchemaGenerationContext {
     }
 
     public String javaTypeToId(String typeName) {
-        return "#" + uriSafe(typeName);
+        return "urn:" + uriSafe(typeName);
     }
 
     public static String uriSafe(String typeName) {
