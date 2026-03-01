@@ -1,5 +1,6 @@
 package com.fasterxml.jackson.module.jsonSchemaV4.factories.utils;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
@@ -204,6 +205,17 @@ public class PolymorphicSchemaUtil {
 
         //Don't return a list of only the parent which sometimes is returned due to generics
         if (result.size() == 1 && result.get(0).getRawClass().equals(type.getRawClass()) && !type.isContainerType()) { //TODO find out why this breaks arrays
+            return Collections.emptyList();
+        }
+
+        // A concrete class that doesn't declare @JsonSubTypes should not be treated as a polymorphic
+        // root. Its subtypes are already handled by the parent hierarchy's polymorphic schema.
+        // Without this check, intermediate concrete classes get a _1 suffix in the schema.
+        // Check via AnnotatedClass to respect mixins.
+        Class<?> rawClass = type.getRawClass();
+        if (!Modifier.isAbstract(rawClass.getModifiers())
+                && !rawClass.isInterface()
+                && classWithoutSuperType.getAnnotation(JsonSubTypes.class) == null) {
             return Collections.emptyList();
         }
 
