@@ -182,7 +182,29 @@ public class PolymorphicSchemaUtil {
         Collection<NamedType> subTypes;
 
         if (config.getSubtypeResolver() != null) {
+            // Use ByClass as primary (includes base types like Set, Map, List)
+            // then augment with ByTypeId to pick up type name aliases (e.g. Collections$EmptySet -> HashSet)
+            // that ByClass deduplicates away
             subTypes = new ArrayList<>(config.getSubtypeResolver().collectAndResolveSubtypesByClass(config, classWithoutSuperType));
+            Set<Class<?>> seenClasses = new HashSet<>();
+            for (NamedType nt : subTypes) {
+                seenClasses.add(nt.getType());
+            }
+            for (NamedType nt : config.getSubtypeResolver().collectAndResolveSubtypesByTypeId(config, classWithoutSuperType)) {
+                if (nt.hasName() && seenClasses.contains(nt.getType())) {
+                    // Check if this name is already covered
+                    boolean nameExists = false;
+                    for (NamedType existing : subTypes) {
+                        if (nt.getName().equals(existing.getName())) {
+                            nameExists = true;
+                            break;
+                        }
+                    }
+                    if (!nameExists) {
+                        subTypes.add(nt);
+                    }
+                }
+            }
         } else {
             return Collections.emptyList();
         }

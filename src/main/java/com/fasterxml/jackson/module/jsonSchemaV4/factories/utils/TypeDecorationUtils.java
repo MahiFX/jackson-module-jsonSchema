@@ -12,11 +12,7 @@ import com.fasterxml.jackson.module.jsonSchemaV4.types.ObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.PolymorphicObjectSchema;
 import com.fasterxml.jackson.module.jsonSchemaV4.types.StringSchema;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by zoliszel on 12/06/2015.
@@ -165,10 +161,12 @@ public class TypeDecorationUtils {
         if (typeSerializer.getTypeIdResolver() == null) {
             return TypeInfo.NOT_AVAILABLE;
         }
-        Set<String> typeNames = new HashSet<String>();
+        Set<String> typeNames = new LinkedHashSet<String>();
         if(originalType.isContainerType()) {
             for (PolymorphicSchemaUtil.NamedJavaType namedJavaType : PolymorphicSchemaUtil.extractSubTypes(originalType, provider.getConfig(), false)) {
-                String typeName = typeSerializer.getTypeIdResolver().idFromValueAndType(null, namedJavaType.getRawClass());
+                String typeName = namedJavaType.getName() != null
+                        ? namedJavaType.getName()
+                        : typeSerializer.getTypeIdResolver().idFromValueAndType(null, namedJavaType.getRawClass());
                 if (typeName != null) {
                     typeNames.add(typeName);
                 }
